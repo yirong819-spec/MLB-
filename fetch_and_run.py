@@ -20,7 +20,6 @@ class MLBDataFetcher:
         """動態初始化與建立 30 支球隊的基礎攻防數據庫"""
         stats = defaultdict(lambda: {"attack": 1.0, "defense": 1.0})
         
-        # 官方基本攻防能力權重基準值
         base_weights = {
             "Yankees": (1.18, 0.85), "Dodgers": (1.22, 0.81), "Braves": (1.12, 0.87),
             "Phillies": (1.14, 0.86), "Astros": (1.15, 0.89), "Orioles": (1.17, 0.90),
@@ -38,16 +37,11 @@ class MLBDataFetcher:
         return stats
 
     def fetch_todays_schedule_and_odds(self):
-        """
-        【核心修改】從 MLB 官方 API 實時下載當天全聯盟的真實比賽日程
-        """
+        """從 MLB 官方 API 實時下載當天全聯盟的真實比賽日程"""
         matches = []
         today_str = datetime.now().strftime("%Y-%m-%d")
-        
-        # 呼叫大聯盟官方公開的 Schedule API
         url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today_str}"
         
-        # 定義官方名稱與我們系統隊伍代碼的映射
         name_map = {
             "New York Yankees": "Yankees", "Los Angeles Dodgers": "Dodgers", "Atlanta Braves": "Braves",
             "Philadelphia Phillies": "Phillies", "Houston Astros": "Astros", "Baltimore Orioles": "Orioles",
@@ -73,15 +67,13 @@ class MLBDataFetcher:
                         away_name = game.get("teams", {}).get("away", {}).get("team", {}).get("name")
                         home_name = game.get("teams", {}).get("home", {}).get("team", {}).get("name")
                         
-                        # 轉換為簡稱
                         team_away = name_map.get(away_name)
                         team_home = name_map.get(home_name)
                         
                         if team_away and team_home:
-                            # 12 大因子的其他即時變數（如傷兵、賠率、心理戰術）由系統根據近期大數據趨勢自動運算生成
                             matches.append({
-                                "team_a": team_home,  # 以主場為 Team A
-                                "team_b": team_away,  # 客場為 Team B
+                                "team_a": team_home,
+                                "team_b": team_away,
                                 "factors": {
                                     "is_home_a": True,
                                     "historical_advantage": random.choice([team_home, team_away, "None"]),
@@ -102,13 +94,12 @@ class MLBDataFetcher:
         except Exception as e:
             print(f"⚠️ 讀取 MLB 官方即時賽程時遭遇不穩定性: {e}")
             
-        # 【安全保底機制】如果目前是非賽季（例如冬天）或官方 API 維護中导致當天沒有比賽
-        # 系統會全自動自動隨機挑選全聯盟 6 場焦點大戰，確保你的網站永遠生龍活虎！
+        # 安全保底隨機組合展示模式
         if not matches:
             print("💡 偵測到今日官方無排定賽事，啟動全自動多隊模擬展示模式...")
             all_teams = list(name_map.values())
             random.shuffle(all_teams)
-            for i in range(0, 12, 2):  # 隨機湊成 6 場跨區大戰
+            for i in range(0, 12, 2):
                 ta, tb = all_teams[i], all_teams[i+1]
                 matches.append({
                     "team_a": ta, "team_b": tb,
@@ -275,8 +266,10 @@ if __name__ == "__main__":
         match_key = f"{ta} vs {tb}"
         forecast_results[match_key] = result
 
+    # ✨【終極優化】強制每次產出完全不同的隨機標記與精確微秒時間戳記，強迫 GitHub Actions 必須推流更新！
     output = {
         "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "force_refresh_token": f"{random.randint(100000, 999999)}-{datetime.now().microsecond}",
         "predictions": forecast_results,
         "historical_elo": dict(elo.ratings)
     }
@@ -285,3 +278,4 @@ if __name__ == "__main__":
         json.dump(output, f, ensure_ascii=False, indent=4)
         
     print(f"🏁 全聯盟排程分析完成！今日共模擬並更新了 {len(todays_matches)} 場球賽。")
+
