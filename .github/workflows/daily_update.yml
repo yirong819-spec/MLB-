@@ -1,14 +1,14 @@
 name: Daily MLB Forecast Update
 on:
   schedule:
-    - cron: '0 22 * * *' # 每天台灣時間清晨 06:00 自動執行
-  workflow_dispatch: # 允許手動點擊執行
+    - cron: '0 22 * * *'
+  workflow_dispatch: 
 jobs:
   update_data:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+    - uses: actions/checkout@v4 
+    - uses: actions/setup-python@v5 
       with:
         python-version: '3.10'
     - run: pip install -r requirements.txt
