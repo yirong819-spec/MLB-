@@ -6,10 +6,45 @@ st.set_page_config(page_title="MLB 深度多因子大數據預測", layout="wide
 st.title("🔮 2026 MLB 12大因子智能預測系統")
 st.subheader("結合：攻防數據、歷史對決、年齡、傷病、戰術、心理、恩怨、莊家賠率之萬次蒙地卡羅分析")
 
-# 隊伍英翻中字典
+# 【核心修復】補齊 MLB 全聯盟 30 支球隊的英翻中字典，確保所有比賽都能正常顯示！
 TEAM_TRANSLATION = {
+    # 美國聯盟東區
     "Yankees": "紐約洋基",
-    "Dodgers": "洛杉磯道奇"
+    "Red Sox": "波士頓紅襪",
+    "Rays": "坦帕灣光芒",
+    "Blue Jays": "多倫多藍鳥",
+    "Orioles": "巴爾地摩金鶯",
+    # 美國聯盟中區
+    "Guardians": "克里夫蘭守護者",
+    "Twins": "明尼蘇達雙城",
+    "Tigers": "底特律老虎",
+    "White Sox": "芝加哥白襪",
+    "Royals": "堪薩斯皇家",
+    # 美國聯盟西區
+    "Astros": "休士頓太空人",
+    "Mariners": "西雅圖水手",
+    "Rangers": "德州遊騎兵",
+    "Angels": "洛杉磯天使",
+    "Athletics": "奧克蘭運動家",
+    
+    # 國家聯盟東區
+    "Dodgers": "洛杉磯道奇",
+    "Braves": "亞特蘭大勇士",
+    "Phillies": "費城費城人",
+    "Mets": "紐約大都會",
+    "Marlins": "邁阿密馬林魚",
+    "Nationals": "華盛頓國民",
+    # 國家聯盟中區
+    "Brewers": "密爾瓦基釀酒人",
+    "Cubs": "芝加哥小熊",
+    "Reds": "辛辛那提紅人",
+    "Pirates": "匹茲堡海盜",
+    "Cardinals": "聖路易紅雀",
+    # 國家聯盟西區
+    "Giants": "舊金山巨人",
+    "Padres": "聖地牙哥教士",
+    "Diamondbacks": "亞利桑那響尾蛇",
+    "Rockies": "科羅拉多洛磯"
 }
 
 if not os.path.exists("latest_forecast.json"):
@@ -23,9 +58,14 @@ else:
         
         predictions = data.get("predictions", {})
         
+        if not predictions:
+            st.info("📅 今日暫無排定賽事，或系統正在等待雲端伺服器抓取最新賽程。")
+        
         for match_name, res in predictions.items():
-            # 翻譯隊伍名
+            # 分割對決名稱（例如 "Dodgers vs Yankees"）
             teams = match_name.split(" vs ")
+            
+            # 安全防護：如果在字典找不到中文，就直接顯示原本的英文名稱（.get 的第二個參數 x 意為找不到就用原本的名字）
             team_a_zh = TEAM_TRANSLATION.get(teams[0], teams[0])
             team_b_zh = TEAM_TRANSLATION.get(teams[1], teams[1])
             winner_zh = TEAM_TRANSLATION.get(res["winner"], res["winner"])
@@ -47,4 +87,4 @@ else:
                 st.write("---")
                 
     except Exception as e:
-        st.error(f"網頁渲染失敗，可能 JSON 格式未完全同步：{e}")
+        st.error(f"網頁渲染失敗，請確認 GitHub 端的數據是否已同步更新：{e}")
