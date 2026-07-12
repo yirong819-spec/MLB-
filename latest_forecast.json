@@ -1,13 +1,17 @@
 {
-    "last_update": "2026-07-12 13:42:49",
+    "last_update": "2026-07-12 13:47:36",
     "predictions": {
         "Dodgers vs Yankees": {
             "winner": "Dodgers",
-            "win_probability": "53.55%",
-            "most_likely": "4 : 5",
-            "second_likely": "5 : 4",
-            "over_under": "大分 (機率 58.4%) [盤口: 8.5]",
-            "upset_prob": "46.45%"
+            "win_probability": "55.75%",
+            "most_likely": "5 : 4",
+            "second_likely": "4 : 5",
+            "over_under": "大分 (機率 61.8%) [盤口: 8.5]",
+            "upset_prob": "44.25%"
         }
+    },
+    "historical_elo": {
+        "Dodgers": 1500,
+        "Yankees": 1500
     }
 }
