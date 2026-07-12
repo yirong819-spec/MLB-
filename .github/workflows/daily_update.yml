@@ -1,21 +1,39 @@
 name: Daily MLB Forecast Update
+
 on:
   schedule:
-    - cron: '0 22 * * *'
-  workflow_dispatch: 
+    - cron: '0 22 * * *' # 每天國際時間 22:00 (美東下午 / 台灣上午) 自動執行
+  workflow_dispatch: # 支援你在手機上手動點擊 "Run workflow"
+
 jobs:
-  update_data:
+  run-simulation:
     runs-on: ubuntu-latest
+    
+    # 賦予這項任務將檔案寫回 GitHub 倉庫的最高讀寫權限
+    permissions:
+      contents: write
+      
     steps:
-    - uses: actions/checkout@v4 
-    - uses: actions/setup-python@v5 
+    - name: 檢查程式碼
+      uses: actions/checkout@v3
+
+    - name: 設定 Python 環境
+      uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-    - run: pip install -r requirements.txt
-    - run: python fetch_and_run.py
-    - name: Commit data
+
+    - name: 安裝套件
       run: |
-        git config --global user.name 'GitHub Action'
-        git config --global user.email 'action@github.com'
+        pip install -r requirements.txt
+
+    - name: 執行大數據模擬抓取
+      run: |
+        python fetch_and_run.py
+
+    - name: 自動提交並推送最新數據
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
         git add latest_forecast.json
-        git diff --quiet && git diff --staged --quiet || (git commit -m "Update data" && git push)
+        git commit -m "🔄 自動更新 MLB 當日預測數據 [$(date)]" || exit 0
+        git push
