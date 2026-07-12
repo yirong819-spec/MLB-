@@ -1,118 +1,118 @@
 {
-    "last_update": "2026-07-12 14:46:15",
-    "force_refresh_token": "563483-136593",
+    "last_update": "2026-07-12 23:51:48",
+    "force_refresh_token": "400363-562403",
     "predictions": {
         "Pirates vs Brewers": {
             "winner": "Brewers",
-            "win_probability": "50.49%",
-            "most_likely": "4 : 3",
-            "second_likely": "3 : 4",
-            "over_under": "小分 (機率 71.0%) [盤口: 9.5]",
-            "upset_prob": "50.49%"
+            "win_probability": "70.61%",
+            "most_likely": "3 : 4",
+            "second_likely": "4 : 5",
+            "over_under": "大分 (機率 60.4%) [盤口: 7.5]",
+            "upset_prob": "70.61%"
         },
         "Orioles vs Royals": {
             "winner": "Orioles",
-            "win_probability": "51.81%",
+            "win_probability": "61.65%",
             "most_likely": "5 : 4",
             "second_likely": "4 : 5",
-            "over_under": "大分 (機率 57.5%) [盤口: 8.5]",
-            "upset_prob": "48.19%"
+            "over_under": "小分 (機率 53.9%) [盤口: 9.5]",
+            "upset_prob": "61.65%"
         },
         "Nationals vs Yankees": {
             "winner": "Yankees",
-            "win_probability": "75.72%",
+            "win_probability": "60.78%",
             "most_likely": "4 : 5",
             "second_likely": "3 : 4",
-            "over_under": "大分 (機率 71.2%) [盤口: 7.5]",
-            "upset_prob": "75.72%"
+            "over_under": "大分 (機率 59.3%) [盤口: 8.5]",
+            "upset_prob": "39.22%"
         },
         "Reds vs Cubs": {
-            "winner": "Cubs",
-            "win_probability": "56.98%",
-            "most_likely": "3 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "大分 (機率 64.4%) [盤口: 7.5]",
-            "upset_prob": "43.02%"
+            "winner": "Reds",
+            "win_probability": "55.34%",
+            "most_likely": "5 : 4",
+            "second_likely": "4 : 3",
+            "over_under": "小分 (機率 59.2%) [盤口: 9.5]",
+            "upset_prob": "44.66%"
         },
         "Mets vs Red Sox": {
             "winner": "Mets",
-            "win_probability": "56.13%",
+            "win_probability": "59.59%",
             "most_likely": "5 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "大分 (機率 63.3%) [盤口: 8.5]",
-            "upset_prob": "56.13%"
+            "second_likely": "4 : 3",
+            "over_under": "小分 (機率 57.5%) [盤口: 9.5]",
+            "upset_prob": "40.41%"
         },
         "Rays vs Mariners": {
             "winner": "Rays",
-            "win_probability": "60.74%",
+            "win_probability": "50.88%",
             "most_likely": "4 : 3",
             "second_likely": "3 : 4",
-            "over_under": "大分 (機率 52.9%) [盤口: 7.5]",
-            "upset_prob": "60.74%"
+            "over_under": "小分 (機率 61.8%) [盤口: 8.5]",
+            "upset_prob": "50.88%"
         },
         "Tigers vs Phillies": {
             "winner": "Phillies",
-            "win_probability": "62.11%",
+            "win_probability": "73.39%",
             "most_likely": "3 : 4",
             "second_likely": "4 : 5",
-            "over_under": "大分 (機率 63.3%) [盤口: 7.5]",
-            "upset_prob": "37.89%"
+            "over_under": "小分 (機率 61.3%) [盤口: 9.5]",
+            "upset_prob": "26.61%"
         },
         "Marlins vs Guardians": {
             "winner": "Guardians",
-            "win_probability": "60.21%",
+            "win_probability": "55.69%",
             "most_likely": "3 : 4",
             "second_likely": "4 : 5",
-            "over_under": "小分 (機率 67.4%) [盤口: 9.5]",
-            "upset_prob": "39.79%"
+            "over_under": "大分 (機率 54.8%) [盤口: 8.5]",
+            "upset_prob": "44.31%"
         },
         "Twins vs Angels": {
-            "winner": "Twins",
-            "win_probability": "77.88%",
-            "most_likely": "5 : 4",
-            "second_likely": "4 : 3",
-            "over_under": "小分 (機率 51.6%) [盤口: 9.5]",
-            "upset_prob": "77.88%"
+            "winner": "Angels",
+            "win_probability": "53.82%",
+            "most_likely": "4 : 5",
+            "second_likely": "5 : 4",
+            "over_under": "大分 (機率 62.6%) [盤口: 8.5]",
+            "upset_prob": "53.82%"
         },
         "Cardinals vs Braves": {
             "winner": "Braves",
-            "win_probability": "61.95%",
+            "win_probability": "52.50%",
             "most_likely": "3 : 4",
             "second_likely": "4 : 5",
-            "over_under": "小分 (機率 62.3%) [盤口: 9.5]",
-            "upset_prob": "38.05%"
+            "over_under": "小分 (機率 50.7%) [盤口: 8.5]",
+            "upset_prob": "52.50%"
         },
         "Rangers vs Astros": {
-            "winner": "Astros",
-            "win_probability": "62.01%",
-            "most_likely": "4 : 5",
-            "second_likely": "3 : 4",
-            "over_under": "大分 (機率 72.7%) [盤口: 7.5]",
-            "upset_prob": "37.99%"
+            "winner": "Rangers",
+            "win_probability": "61.70%",
+            "most_likely": "5 : 4",
+            "second_likely": "4 : 5",
+            "over_under": "小分 (機率 53.5%) [盤口: 9.5]",
+            "upset_prob": "38.30%"
         },
         "Giants vs Rockies": {
-            "winner": "Giants",
-            "win_probability": "70.83%",
-            "most_likely": "5 : 4",
-            "second_likely": "4 : 3",
-            "over_under": "大分 (機率 54.0%) [盤口: 8.5]",
-            "upset_prob": "29.17%"
+            "winner": "Rockies",
+            "win_probability": "52.67%",
+            "most_likely": "4 : 3",
+            "second_likely": "4 : 5",
+            "over_under": "大分 (機率 56.0%) [盤口: 8.5]",
+            "upset_prob": "52.67%"
         },
         "Dodgers vs Diamondbacks": {
             "winner": "Dodgers",
-            "win_probability": "77.07%",
+            "win_probability": "75.77%",
             "most_likely": "5 : 4",
-            "second_likely": "5 : 3",
-            "over_under": "大分 (機率 60.2%) [盤口: 8.5]",
-            "upset_prob": "22.93%"
+            "second_likely": "4 : 3",
+            "over_under": "大分 (機率 62.1%) [盤口: 8.5]",
+            "upset_prob": "24.23%"
         },
         "Padres vs Blue Jays": {
-            "winner": "Blue Jays",
-            "win_probability": "54.55%",
-            "most_likely": "3 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "大分 (機率 64.4%) [盤口: 7.5]",
-            "upset_prob": "45.45%"
+            "winner": "Padres",
+            "win_probability": "63.04%",
+            "most_likely": "5 : 4",
+            "second_likely": "4 : 3",
+            "over_under": "大分 (機率 69.0%) [盤口: 7.5]",
+            "upset_prob": "63.04%"
         }
     },
     "historical_elo": {
