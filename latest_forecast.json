@@ -1,17 +1,57 @@
 {
-    "last_update": "2026-07-12 13:50:12",
+    "last_update": "2026-07-12 13:57:46",
     "predictions": {
+        "Braves vs Phillies": {
+            "winner": "Braves",
+            "win_probability": "57.04%",
+            "most_likely": "4 : 3",
+            "second_likely": "5 : 4",
+            "over_under": "大分 (機率 66.4%) [盤口: 7.5]",
+            "upset_prob": "42.96%"
+        },
+        "Astros vs Mariners": {
+            "winner": "Astros",
+            "win_probability": "52.57%",
+            "most_likely": "4 : 3",
+            "second_likely": "3 : 4",
+            "over_under": "小分 (機率 57.9%) [盤口: 8.0]",
+            "upset_prob": "52.57%"
+        },
+        "Brewers vs Mets": {
+            "winner": "Brewers",
+            "win_probability": "65.54%",
+            "most_likely": "4 : 3",
+            "second_likely": "5 : 4",
+            "over_under": "小分 (機率 51.6%) [盤口: 8.5]",
+            "upset_prob": "34.46%"
+        },
         "Dodgers vs Yankees": {
             "winner": "Dodgers",
-            "win_probability": "55.57%",
+            "win_probability": "55.63%",
             "most_likely": "5 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "大分 (機率 62.0%) [盤口: 8.5]",
-            "upset_prob": "44.43%"
+            "second_likely": "4 : 3",
+            "over_under": "大分 (機率 52.5%) [盤口: 8.5]",
+            "upset_prob": "44.37%"
+        },
+        "Orioles vs Red Sox": {
+            "winner": "Orioles",
+            "win_probability": "69.56%",
+            "most_likely": "5 : 4",
+            "second_likely": "4 : 3",
+            "over_under": "小分 (機率 55.7%) [盤口: 9.0]",
+            "upset_prob": "30.44%"
         }
     },
     "historical_elo": {
         "Dodgers": 1500,
-        "Yankees": 1500
+        "Yankees": 1500,
+        "Braves": 1500,
+        "Phillies": 1500,
+        "Astros": 1500,
+        "Mariners": 1500,
+        "Brewers": 1500,
+        "Mets": 1500,
+        "Orioles": 1500,
+        "Red Sox": 1500
     }
 }
