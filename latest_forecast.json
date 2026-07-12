@@ -1,17 +1,13 @@
 {
-    "last_update": "2026-07-12 13:27:21",
-    "probabilities": {
-        "Dodgers": 0.658,
-        "Yankees": 0.216,
-        "Astros": 0.017,
-        "Braves": 0.017,
-        "Mariners": 0.015,
-        "Rays": 0.018,
-        "Mets": 0.008,
-        "Brewers": 0.009,
-        "Padres": 0.014,
-        "Guardians": 0.009,
-        "Blue Jays": 0.012,
-        "Phillies": 0.007
+    "last_update": "2026-07-12 13:42:49",
+    "predictions": {
+        "Dodgers vs Yankees": {
+            "winner": "Dodgers",
+            "win_probability": "53.55%",
+            "most_likely": "4 : 5",
+            "second_likely": "5 : 4",
+            "over_under": "大分 (機率 58.4%) [盤口: 8.5]",
+            "upset_prob": "46.45%"
+        }
     }
 }
