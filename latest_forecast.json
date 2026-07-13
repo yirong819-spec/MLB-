@@ -1,118 +1,62 @@
 {
-    "last_update": "2026-07-12 23:51:48",
-    "force_refresh_token": "400363-562403",
+    "last_update": "2026-07-13 01:12:04",
+    "force_refresh_token": "862390-784332",
     "predictions": {
-        "Pirates vs Brewers": {
-            "winner": "Brewers",
-            "win_probability": "70.61%",
-            "most_likely": "3 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "大分 (機率 60.4%) [盤口: 7.5]",
-            "upset_prob": "70.61%"
-        },
-        "Orioles vs Royals": {
-            "winner": "Orioles",
-            "win_probability": "61.65%",
-            "most_likely": "5 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "小分 (機率 53.9%) [盤口: 9.5]",
-            "upset_prob": "61.65%"
-        },
-        "Nationals vs Yankees": {
-            "winner": "Yankees",
-            "win_probability": "60.78%",
-            "most_likely": "4 : 5",
-            "second_likely": "3 : 4",
-            "over_under": "大分 (機率 59.3%) [盤口: 8.5]",
-            "upset_prob": "39.22%"
-        },
-        "Reds vs Cubs": {
-            "winner": "Reds",
-            "win_probability": "55.34%",
-            "most_likely": "5 : 4",
-            "second_likely": "4 : 3",
-            "over_under": "小分 (機率 59.2%) [盤口: 9.5]",
-            "upset_prob": "44.66%"
-        },
-        "Mets vs Red Sox": {
-            "winner": "Mets",
-            "win_probability": "59.59%",
-            "most_likely": "5 : 4",
-            "second_likely": "4 : 3",
-            "over_under": "小分 (機率 57.5%) [盤口: 9.5]",
-            "upset_prob": "40.41%"
-        },
-        "Rays vs Mariners": {
-            "winner": "Rays",
-            "win_probability": "50.88%",
-            "most_likely": "4 : 3",
-            "second_likely": "3 : 4",
-            "over_under": "小分 (機率 61.8%) [盤口: 8.5]",
-            "upset_prob": "50.88%"
-        },
-        "Tigers vs Phillies": {
+        "Phillies vs Giants": {
             "winner": "Phillies",
-            "win_probability": "73.39%",
-            "most_likely": "3 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "小分 (機率 61.3%) [盤口: 9.5]",
-            "upset_prob": "26.61%"
-        },
-        "Marlins vs Guardians": {
-            "winner": "Guardians",
-            "win_probability": "55.69%",
-            "most_likely": "3 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "大分 (機率 54.8%) [盤口: 8.5]",
-            "upset_prob": "44.31%"
-        },
-        "Twins vs Angels": {
-            "winner": "Angels",
-            "win_probability": "53.82%",
-            "most_likely": "4 : 5",
+            "win_probability": "67.01%",
+            "most_likely": "4 : 3",
             "second_likely": "5 : 4",
-            "over_under": "大分 (機率 62.6%) [盤口: 8.5]",
-            "upset_prob": "53.82%"
+            "over_under": "大分 (機率 50.7%) [盤口: 8.5]",
+            "upset_prob": "67.01%"
         },
-        "Cardinals vs Braves": {
-            "winner": "Braves",
-            "win_probability": "52.50%",
-            "most_likely": "3 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "小分 (機率 50.7%) [盤口: 8.5]",
-            "upset_prob": "52.50%"
-        },
-        "Rangers vs Astros": {
-            "winner": "Rangers",
-            "win_probability": "61.70%",
-            "most_likely": "5 : 4",
-            "second_likely": "4 : 5",
-            "over_under": "小分 (機率 53.5%) [盤口: 9.5]",
-            "upset_prob": "38.30%"
-        },
-        "Giants vs Rockies": {
-            "winner": "Rockies",
-            "win_probability": "52.67%",
+        "Pirates vs Tigers": {
+            "winner": "Tigers",
+            "win_probability": "53.05%",
             "most_likely": "4 : 3",
             "second_likely": "4 : 5",
-            "over_under": "大分 (機率 56.0%) [盤口: 8.5]",
-            "upset_prob": "52.67%"
+            "over_under": "小分 (機率 51.2%) [盤口: 8.5]",
+            "upset_prob": "46.95%"
         },
-        "Dodgers vs Diamondbacks": {
-            "winner": "Dodgers",
-            "win_probability": "75.77%",
-            "most_likely": "5 : 4",
-            "second_likely": "4 : 3",
-            "over_under": "大分 (機率 62.1%) [盤口: 8.5]",
-            "upset_prob": "24.23%"
+        "White Sox vs Orioles": {
+            "winner": "Orioles",
+            "win_probability": "87.73%",
+            "most_likely": "3 : 6",
+            "second_likely": "3 : 5",
+            "over_under": "大分 (機率 67.6%) [盤口: 8.5]",
+            "upset_prob": "12.27%"
         },
-        "Padres vs Blue Jays": {
-            "winner": "Padres",
-            "win_probability": "63.04%",
+        "Royals vs Yankees": {
+            "winner": "Yankees",
+            "win_probability": "59.70%",
+            "most_likely": "4 : 5",
+            "second_likely": "3 : 4",
+            "over_under": "大分 (機率 55.6%) [盤口: 8.5]",
+            "upset_prob": "40.30%"
+        },
+        "Rangers vs Athletics": {
+            "winner": "Rangers",
+            "win_probability": "66.36%",
             "most_likely": "5 : 4",
-            "second_likely": "4 : 3",
-            "over_under": "大分 (機率 69.0%) [盤口: 7.5]",
-            "upset_prob": "63.04%"
+            "second_likely": "5 : 3",
+            "over_under": "大分 (機率 59.2%) [盤口: 8.5]",
+            "upset_prob": "66.36%"
+        },
+        "Guardians vs Rays": {
+            "winner": "Guardians",
+            "win_probability": "56.99%",
+            "most_likely": "4 : 3",
+            "second_likely": "3 : 4",
+            "over_under": "小分 (機率 52.6%) [盤口: 8.5]",
+            "upset_prob": "56.99%"
+        },
+        "Nationals vs Blue Jays": {
+            "winner": "Blue Jays",
+            "win_probability": "61.63%",
+            "most_likely": "4 : 5",
+            "second_likely": "3 : 4",
+            "over_under": "大分 (機率 55.0%) [盤口: 8.5]",
+            "upset_prob": "38.37%"
         }
     },
     "historical_elo": {
@@ -121,28 +65,31 @@
         "Braves": 1500,
         "Phillies": 1500,
         "Astros": 1500,
-        "Mariners": 1500,
-        "Brewers": 1500,
-        "Mets": 1500,
         "Orioles": 1500,
-        "Red Sox": 1500,
-        "Pirates": 1500,
-        "Royals": 1500,
-        "Nationals": 1500,
-        "Reds": 1500,
-        "Cubs": 1500,
-        "Rays": 1500,
-        "Tigers": 1500,
-        "Marlins": 1500,
-        "Guardians": 1500,
-        "Twins": 1500,
-        "Angels": 1500,
-        "Cardinals": 1500,
-        "Rangers": 1500,
-        "Giants": 1500,
-        "Rockies": 1500,
-        "Diamondbacks": 1500,
         "Padres": 1500,
-        "Blue Jays": 1500
+        "Diamondbacks": 1500,
+        "Mets": 1500,
+        "Brewers": 1500,
+        "Guardians": 1500,
+        "Royals": 1500,
+        "Twins": 1500,
+        "Red Sox": 1500,
+        "Mariners": 1500,
+        "Tigers": 1500,
+        "Rangers": 1500,
+        "Cubs": 1500,
+        "Blue Jays": 1500,
+        "Giants": 1500,
+        "Cardinals": 1500,
+        "Rays": 1500,
+        "Reds": 1500,
+        "Pirates": 1500,
+        "Nationals": 1500,
+        "Angels": 1500,
+        "Marlins": 1500,
+        "Oakland": 1420,
+        "Rockies": 1500,
+        "White Sox": 1350,
+        "Athletics": 1500
     }
 }
