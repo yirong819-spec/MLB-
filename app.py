@@ -63,20 +63,27 @@ else:
                 st.metric(label="📈 大分出現總機率", value=res.get("over_prob", "50.0%"))
                 st.metric(label="📉 小分出現總機率", value=res.get("under_prob", "50.0%"))
             
-            # 2. 🟢【全新重磅功能：5大因子即時雲端戰報面版】
+            # 2. 5大因子即時雲端戰報面版 (加上安全防呆機制)
             with st.expander("📊 查看此場比賽「5大核心因子」即時大數據戰報"):
                 c1, c2, c3 = st.columns(3)
+                
+                # 🛠️【終極防呆防線】安全將可能為 None 或字串的資料轉為浮點數，防止網頁報錯崩潰
+                try:
+                    raw_weather_mod = float(res.get('report_weather', 1.0))
+                except:
+                    raw_weather_mod = 1.0
+                    
                 with c1:
-                    st.write(f"🌤️ **天候環境**：{res.get('report_weather_info')}")
-                    st.write(f"📉 **天候疲勞倍率**：{res.get('report_weather'):.2f}x")
+                    st.write(f"🌤️ **天候環境**：{res.get('report_weather_info', '中立穩定')}")
+                    st.write(f"📉 **天候疲勞倍率**：{raw_weather_mod:.2f}x")
                 with c2:
-                    st.write(f"🏟️ **球場幾何效應指數**：{res.get('report_park')}")
+                    st.write(f"🏟️ **球場幾何效應指數**：{res.get('report_park', 100)}")
                     st.write(f"🎨 **主場優勢加成**：已自動注入 +4.0%")
                 with c3:
                     st.write(f"👤 **當日抗投左右對戰加權打擊率 (OPS)**")
-                    st.write(f" - {team_a_zh} 打線：`{res.get('report_ops_a')}`")
-                    st.write(f" - {team_b_zh} 打線：`{res.get('report_ops_b')}`")
+                    st.write(f" - {team_a_zh} 打線：`{res.get('report_ops_a', 0.730)}`")
+                    st.write(f" - {team_b_zh} 打線：`{res.get('report_ops_b', 0.730)}`")
                     
-                st.caption(f"💡 *防守分流精算資訊：{team_a_zh} 先發 ERA `{res.get('report_p_era_a')}` / 牛棚 `{res.get('report_b_era_a')}` ｜ {team_b_zh} 先發 ERA `{res.get('report_p_era_b')}` / 牛棚 `{res.get('report_b_era_b')}`*")
+                st.caption(f"💡 *防守分流精算資訊：{team_a_zh} 先發 ERA `{res.get('report_p_era_a', 4.0)}` / 牛棚 `{res.get('report_b_era_a', 4.0)}` ｜ {team_b_zh} 先發 ERA `{res.get('report_p_era_b', 4.0)}` / 牛棚 `{res.get('report_b_era_b', 4.0)}`*")
             
             st.write("---")
