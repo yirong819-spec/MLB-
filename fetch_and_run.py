@@ -60,8 +60,7 @@ class MLBDataFetcher:
                     slg = float(stat.get("slg", 0.410))
                     iso = max(0.05, slg - avg)
                     return ops, iso
-        except:
-            pass
+        except: pass
         return 0.730, 0.160
 
     def fetch_team_bullpen_era(self, team_id_or_name):
@@ -116,10 +115,8 @@ class MLBDataFetcher:
                             bullpen_era_home = self.fetch_team_bullpen_era(team_home)
                             bullpen_era_away = self.fetch_team_bullpen_era(team_away)
                             
-                            pitcher_hand_home = "R"
-                            pitcher_hand_away = "R"
-                            real_era_home_pitcher = 3.90
-                            real_era_away_pitcher = 4.10
+                            pitcher_hand_home, pitcher_hand_away = "R", "R"
+                            real_era_home_pitcher, real_era_away_pitcher = 3.90, 4.10
                             
                             try:
                                 hp = game.get("teams", {}).get("home", {}).get("probablePitcher", {})
@@ -181,13 +178,12 @@ class MLBDataFetcher:
                                     "is_public_b": team_away in self.public_teams
                                 }
                             })
-        except Exception as e:
-            print(f"Error: {e}")
+        except Exception as e: print(f"Error: {e}")
             
         if not matches:
             all_teams = list(name_map.values())
             random.shuffle(all_teams)
-            dummy_weathers = ["82 Degrees, Clear", "72 Degrees, Dome"]
+            dummy_weathers = ["86 Degrees, Clear", "72 Degrees, Dome"]
             for i in range(0, 14, 2):
                 ta, tb = all_teams[i], all_teams[i+1]
                 w_str = random.choice(dummy_weathers)
@@ -301,8 +297,7 @@ class AdvancedPoissonPredictor:
         return k - 1
 
     def simulate_single_game(self, team_a, team_b, elo_model, factors):
-        score_a = 0
-        score_b = 0
+        score_a, score_b = 0, 0
         for inning in range(1, 10):
             lam_a, lam_b = self.calculate_match_lambdas(team_a, team_b, elo_model, factors, inning)
             score_a += self._poisson_rvs(lam_a)
@@ -333,8 +328,7 @@ class MatchAnalyzer:
         
         if factors.get("is_public_a", False) and odds_a < odds_b:
             adjusted_market_prob_a = (1.05 / odds_a) - 0.04
-        else:
-            adjusted_market_prob_a = (1.05 / odds_a)
+        else: adjusted_market_prob_a = (1.05 / odds_a)
             
         is_a_favorite = adjusted_market_prob_a > 0.5
         
@@ -356,31 +350,25 @@ class MatchAnalyzer:
         ou_line = factors.get("over_under_line", 8.5)
         over_count = sum(1 for sa, sb in scores_history if (sa + sb) > ou_line)
         over_prob = over_count / num_simulations
-        ou_result = f"大分 ({over_prob:.1%})" if over_prob >= 0.5 else f"小分 ({1-over_prob:.1%})"
 
+        # 🟢【終極修改點】不再輸出死板字串，改用「字典資料結構」完美對接前端
         return {
             "winner": winner,
             "win_probability": f"{max(prob_a, prob_b):.2%}",
             "most_likely": most_likely,
             "second_likely": second_likely,
-            "over_under": f"{ou_result} [Line: {ou_line}]",
-            "upset_prob": f"{upset_probability:.2%}"
-        }
-
-if __name__ == "__main__":
-    elo = AdvancedEloRating()
-    elo.load_historical_elo()
-    fetcher = MLBDataFetcher()
-    todays_matches = fetcher.fetch_todays_schedule_and_odds(elo)
-    poisson = AdvancedPoissonPredictor()
-    analyzer = MatchAnalyzer(elo, poisson)
-    
-    forecast_results = {}
-    for match in todays_matches:
-        ta = match["team_a"]
-        tb = match["team_b"]
-        fac = match["factors"]
-        result = analyzer.analyze_match(ta, tb, fac, num_simulations=50000)
-        forecast_results[f"{ta} vs {tb}"] = result
-
-    output =
+            "upset_prob": f"{upset_probability:.2%}",
+            "ou_line": str(ou_line),
+            "over_prob": f"{over_prob * 100:.1f}%",
+            "under_prob": f"{(1.0 - over_prob) * 100:.1f}%",
+            "ou_recommend": "大分" if over_prob >= 0.5 else "小分",
+            # 傳遞實時戰報因子供前端視覺化呈現
+            "report_weather": factors.get("weather_modifier", 1.0),
+            "report_park": factors.get("park_factor", 100),
+            "report_p_era_a": factors.get("pitcher_era_a", 4.0),
+            "report_p_era_b": factors.get("pitcher_era_b", 4.0),
+            "report_b_era_a": factors.get("bullpen_era_a", 4.0),
+            "report_b_era_b": factors.get("bullpen_era_b", 4.0),
+            "report_ops_a": round(factors.get("player_ops_a", 0.73), 3),
+            "report_ops_b": round(factors.get("player_ops_b", 0.73), 3),
+ 
