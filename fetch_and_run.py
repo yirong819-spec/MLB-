@@ -2,7 +2,7 @@ import math
 import random
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict, Counter
 import requests
 
@@ -20,6 +20,19 @@ class MLBDataFetcher:
             "Angels": 101, "Nationals": 99, "Marlins": 96, "Athletics": 97, "White Sox": 101
         }
         self.public_teams = ["Dodgers", "Yankees", "Cubs", "Red Sox", "Braves"]
+        self.name_map = {
+            "New York Yankees": "Yankees", "Los Angeles Dodgers": "Dodgers", "Atlanta Braves": "Braves",
+            "Philadelphia Phillies": "Phillies", "Houston Astros": "Astros", "Baltimore Orioles": "Orioles",
+            "Tampa Bay Rays": "Rays", "Toronto Blue Jays": "Blue Jays", "Boston Red Sox": "Red Sox",
+            "Cleveland Guardians": "Guardians", "Minnesota Twins": "Twins", "Detroit Tigers": "Tigers",
+            "Seattle Mariners": "Mariners", "Texas Rangers": "Rangers", "Los Angeles Angels": "Angels",
+            "Oakland Athletics": "Athletics", "Sacramento Athletics": "Athletics", "New York Mets": "Mets", 
+            "Milwaukee Brewers": "Brewers", "Chicago Cubs": "Cubs", "Cincinnati Reds": "Reds",
+            "Pittsburgh Pirates": "Pirates", "St. Louis Cardinals": "Cardinals", "Miami Marlins": "Marlins",
+            "Washington Nationals": "Nationals", "San Francisco Giants": "Giants", "San Diego Padres": "Padres",
+            "Arizona Diamondbacks": "Diamondbacks", "Colorado Rockies": "Rockies", "Chicago White Sox": "White Sox",
+            "Kansas City Royals": "Royals"
+        }
 
     def fetch_team_base_tactics(self):
         tactics = defaultdict(lambda: "平衡作戰流")
@@ -72,25 +85,90 @@ class MLBDataFetcher:
         }
         return base_bullpen_era.get(team_id_or_name, 3.95)
 
-    def fetch_todays_schedule_and_odds(self, elo_model):
+    def process_raw_games(self, games, elo_model, tactics_db, is_future_preview=False):
         matches = []
+        for game in games:
+            away_name = game.get("teams", {}).get("away", {}).get("team", {}).get("name")
+            home_name = game.get("teams", {}).get("home", {}).get("team", {}).get("name")
+            team_away = self.name_map.get(away_name)
+            team_home = self.name_map.get(home_name)
+            game_pk = str(game.get("gamePk", random.randint(100000, 999999)))
+            
+            if team_away and team_home:
+                w_info = game.get("weather", {}).get("condition", "75 Degrees, Clear")
+                if is_future_preview:
+                    w_info = f"預報：75 Degrees, Clear (於未來賽事 {game.get('gameDate', '')[:10]})"
+                w_mod = self.parse_real_weather(w_info)
+                p_factor = self.park_factors.get(team_home, 100)
+                
+                bullpen_era_home = self.fetch_team_bullpen_era(team_home)
+                bullpen_era_away = self.fetch_team_bullpen_era(team_away)
+                
+                pitcher_hand_home, pitcher_hand_away = "R", "R"
+                real_era_home_pitcher, real_era_away_pitcher = 3.90, 4.10
+                
+                try:
+                    hp = game.get("teams", {}).get("home", {}).get("probablePitcher", {})
+                    if hp:
+                        p_res = requests.get(f"https://statsapi.mlb.com/api/v1/people/{hp.get('id')}?hydrate=stats(group=[pitching],types=[season])", headers=self.headers, timeout=4).json()
+                        pitcher_hand_home = p_res.get("people", [{}])[0].get("pitchHand", {}).get("code", "R")
+                        real_era_home_pitcher = float(p_res.get("people", [{}])[0].get("stats", [{}])[0].get("splits", [{}])[0].get("stat", {}).get("era", 3.90))
+                except: pass
+
+                try:
+                    ap = game.get("teams", {}).get("away", {}).get("probablePitcher", {})
+                    if ap:
+                        p_res = requests.get(f"https://statsapi.mlb.com/api/v1/people/{ap.get('id')}?hydrate=stats(group=[pitching],types=[season])", headers=self.headers, timeout=4).json()
+                        pitcher_hand_away = p_res.get("people", [{}])[0].get("pitchHand", {}).get("code", "R")
+                        real_era_away_pitcher = float(p_res.get("people", [{}])[0].get("stats", [{}])[0].get("splits", [{}])[0].get("stat", {}).get("era", 4.10))
+                except: pass
+
+                lineups = game.get("lineups", {})
+                real_ops_home, real_iso_home = 0.745, 0.165
+                real_ops_away, real_iso_away = 0.735, 0.155
+                
+                home_lineup = lineups.get("homePlayers", [])
+                if home_lineup:
+                    stats_list = [self.fetch_player_split_stats(p.get("id"), pitcher_hand_away) for p in home_lineup]
+                    real_ops_home = sum(s[0] for s in stats_list) / len(stats_list)
+                    real_iso_home = sum(s[1] for s in stats_list) / len(stats_list)
+                
+                away_lineup = lineups.get("awayPlayers", [])
+                if away_lineup:
+                    stats_list = [self.fetch_player_split_stats(p.get("id"), pitcher_hand_home) for p in away_lineup]
+                    real_ops_away = sum(s[0] for s in stats_list) / len(stats_list)
+                    real_iso_away = sum(s[1] for s in stats_list) / len(stats_list)
+
+                base_ou = 8.5
+                if p_factor > 105: base_ou = 9.5
+                if p_factor > 110: base_ou = 11.5
+                elif p_factor < 96: base_ou = 7.5
+                
+                elo_diff = elo_model.ratings[team_home] - elo_model.ratings[team_away]
+                expected_prob_a = 1 / (1 + 10**((-elo_diff) / 400))
+                market_odds_a = round(max(1.10, min(4.00, 1.05 / expected_prob_a)), 2)
+                market_odds_b = round(max(1.10, min(4.00, 1.05 / (1.0 - expected_prob_a))), 2)
+
+                matches.append({
+                    "team_a": team_home, "team_b": team_away, "game_pk": game_pk,
+                    "weather_info": w_info,
+                    "factors": {
+                        "weather_modifier": w_mod, "park_factor": p_factor,
+                        "tactics_a": tactics_db[team_home], "tactics_b": tactics_db[team_away],
+                        "market_odds_a": market_odds_a, "market_odds_b": market_odds_b,
+                        "over_under_line": base_ou, "is_home_a": True,
+                        "player_ops_a": real_ops_home, "player_ops_b": real_ops_away,
+                        "player_iso_a": real_iso_home, "player_iso_b": real_iso_away,
+                        "pitcher_era_a": real_era_home_pitcher, "pitcher_era_b": real_era_away_pitcher,
+                        "bullpen_era_a": bullpen_era_home, "bullpen_era_b": bullpen_era_away,
+                        "is_public_a": team_home in self.public_teams, "is_public_b": team_away in self.public_teams
+                    }
+                })
+        return matches
+
+    def fetch_todays_schedule_and_odds(self, elo_model):
         today_str = datetime.now().strftime("%Y-%m-%d")
         url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today_str}&hydrate=weather,lineups"
-        
-        name_map = {
-            "New York Yankees": "Yankees", "Los Angeles Dodgers": "Dodgers", "Atlanta Braves": "Braves",
-            "Philadelphia Phillies": "Phillies", "Houston Astros": "Astros", "Baltimore Orioles": "Orioles",
-            "Tampa Bay Rays": "Rays", "Toronto Blue Jays": "Blue Jays", "Boston Red Sox": "Red Sox",
-            "Cleveland Guardians": "Guardians", "Minnesota Twins": "Twins", "Detroit Tigers": "Tigers",
-            "Seattle Mariners": "Mariners", "Texas Rangers": "Rangers", "Los Angeles Angels": "Angels",
-            "Oakland Athletics": "Athletics", "Sacramento Athletics": "Athletics", "New York Mets": "Mets", 
-            "Milwaukee Brewers": "Brewers", "Chicago Cubs": "Cubs", "Cincinnati Reds": "Reds",
-            "Pittsburgh Pirates": "Pirates", "St. Louis Cardinals": "Cardinals", "Miami Marlins": "Marlins",
-            "Washington Nationals": "Nationals", "San Francisco Giants": "Giants", "San Diego Padres": "Padres",
-            "Arizona Diamondbacks": "Diamondbacks", "Colorado Rockies": "Rockies", "Chicago White Sox": "White Sox",
-            "Kansas City Royals": "Royals"
-        }
-        
         tactics_db = self.fetch_team_base_tactics()
 
         try:
@@ -98,110 +176,27 @@ class MLBDataFetcher:
             if response.status_code == 200:
                 data = response.json()
                 dates = data.get("dates", [])
-                if dates:
-                    games = dates[0].get("games", [])
-                    for game in games:
-                        away_name = game.get("teams", {}).get("away", {}).get("team", {}).get("name")
-                        home_name = game.get("teams", {}).get("home", {}).get("team", {}).get("name")
-                        team_away = name_map.get(away_name)
-                        team_home = name_map.get(home_name)
-                        game_pk = str(game.get("gamePk", random.randint(100000, 999999)))
-                        
-                        if team_away and team_home:
-                            w_info = game.get("weather", {}).get("condition", "75 Degrees, Clear")
-                            w_mod = self.parse_real_weather(w_info)
-                            p_factor = self.park_factors.get(team_home, 100)
-                            
-                            bullpen_era_home = self.fetch_team_bullpen_era(team_home)
-                            bullpen_era_away = self.fetch_team_bullpen_era(team_away)
-                            
-                            pitcher_hand_home, pitcher_hand_away = "R", "R"
-                            real_era_home_pitcher, real_era_away_pitcher = 3.90, 4.10
-                            
-                            try:
-                                hp = game.get("teams", {}).get("home", {}).get("probablePitcher", {})
-                                if hp:
-                                    p_res = requests.get(f"https://statsapi.mlb.com/api/v1/people/{hp.get('id')}?hydrate=stats(group=[pitching],types=[season])", headers=self.headers, timeout=4).json()
-                                    pitcher_hand_home = p_res.get("people", [{}])[0].get("pitchHand", {}).get("code", "R")
-                                    real_era_home_pitcher = float(p_res.get("people", [{}])[0].get("stats", [{}])[0].get("splits", [{}])[0].get("stat", {}).get("era", 3.90))
-                            except: pass
-
-                            try:
-                                ap = game.get("teams", {}).get("away", {}).get("probablePitcher", {})
-                                if ap:
-                                    p_res = requests.get(f"https://statsapi.mlb.com/api/v1/people/{ap.get('id')}?hydrate=stats(group=[pitching],types=[season])", headers=self.headers, timeout=4).json()
-                                    pitcher_hand_away = p_res.get("people", [{}])[0].get("pitchHand", {}).get("code", "R")
-                                    real_era_away_pitcher = float(p_res.get("people", [{}])[0].get("stats", [{}])[0].get("splits", [{}])[0].get("stat", {}).get("era", 4.10))
-                            except: pass
-
-                            lineups = game.get("lineups", {})
-                            real_ops_home, real_iso_home = 0.745, 0.165
-                            real_ops_away, real_iso_away = 0.735, 0.155
-                            
-                            home_lineup = lineups.get("homePlayers", [])
-                            if home_lineup:
-                                stats_list = [self.fetch_player_split_stats(p.get("id"), pitcher_hand_away) for p in home_lineup]
-                                real_ops_home = sum(s[0] for s in stats_list) / len(stats_list)
-                                real_iso_home = sum(s[1] for s in stats_list) / len(stats_list)
-                            
-                            away_lineup = lineups.get("awayPlayers", [])
-                            if away_lineup:
-                                stats_list = [self.fetch_player_split_stats(p.get("id"), pitcher_hand_home) for p in away_lineup]
-                                real_ops_away = sum(s[0] for s in stats_list) / len(stats_list)
-                                real_iso_away = sum(s[1] for s in stats_list) / len(stats_list)
-
-                            base_ou = 8.5
-                            if p_factor > 105: base_ou = 9.5
-                            if p_factor > 110: base_ou = 11.5
-                            elif p_factor < 96: base_ou = 7.5
-                            
-                            elo_diff = elo_model.ratings[team_home] - elo_model.ratings[team_away]
-                            expected_prob_a = 1 / (1 + 10**((-elo_diff) / 400))
-                            market_odds_a = round(max(1.10, min(4.00, 1.05 / expected_prob_a)), 2)
-                            market_odds_b = round(max(1.10, min(4.00, 1.05 / (1.0 - expected_prob_a))), 2)
-
-                            matches.append({
-                                "team_a": team_home, "team_b": team_away, "game_pk": game_pk,
-                                "weather_info": w_info,
-                                "factors": {
-                                    "weather_modifier": w_mod, "park_factor": p_factor,
-                                    "tactics_a": tactics_db[team_home], "tactics_b": tactics_db[team_away],
-                                    "market_odds_a": market_odds_a, "market_odds_b": market_odds_b,
-                                    "over_under_line": base_ou, "is_home_a": True,
-                                    "player_ops_a": real_ops_home, "player_ops_b": real_ops_away,
-                                    "player_iso_a": real_iso_home, "player_iso_b": real_iso_away,
-                                    "pitcher_era_a": real_era_home_pitcher, "pitcher_era_b": real_era_away_pitcher,
-                                    "bullpen_era_a": bullpen_era_home, "bullpen_era_b": bullpen_era_away,
-                                    "is_public_a": team_home in self.public_teams, "is_public_b": team_away in self.public_teams
-                                }
-                            })
+                if dates and dates[0].get("games"):
+                    return self.process_raw_games(dates[0]["games"], elo_model, tactics_db, is_future_preview=False)
         except Exception as e: print(f"Error: {e}")
-            
-        if not matches:
-            all_teams = list(name_map.values())
-            random.shuffle(all_teams)
-            dummy_weathers = ["82 Degrees, Clear", "72 Degrees, Dome"]
-            for i in range(0, 14, 2):
-                ta, tb = all_teams[i], all_teams[i+1]
-                w_str = random.choice(dummy_weathers)
-                p_fac = self.park_factors.get(ta, 100)
-                matches.append({
-                    "team_a": ta, "team_b": tb, "game_pk": f"mock_{i}",
-                    "weather_info": w_str,
-                    "factors": {
-                        "weather_modifier": self.parse_real_weather(w_str), "park_factor": p_fac,
-                        "tactics_a": tactics_db[ta], "tactics_b": tactics_db[tb],
-                        "market_odds_a": 1.75, "market_odds_b": 2.15,
-                        "over_under_line": 10.5 if ta == "Rockies" else (7.5 if p_fac < 96 else 8.5), "is_home_a": True,
-                        "player_ops_a": round(random.uniform(0.720, 0.810), 3), "player_ops_b": round(random.uniform(0.690, 0.780), 3),
-                        "player_iso_a": round(random.uniform(0.130, 0.220), 3), "player_iso_b": round(random.uniform(0.120, 0.200), 3),
-                        "pitcher_era_a": round(random.uniform(2.60, 4.80), 2), "pitcher_era_b": round(random.uniform(2.90, 5.20), 2),
-                        "bullpen_era_a": round(random.uniform(3.20, 4.50), 2), "bullpen_era_b": round(random.uniform(3.30, 4.80), 2),
-                        "is_public_a": ta in self.public_teams, "is_public_b": tb in self.public_teams
-                    }
-                })
-        return matches
 
+        for day_offset in range(1, 7):
+            future_date = (datetime.now() + timedelta(days=day_offset)).strftime("%Y-%m-%d")
+            f_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={future_date}&hydrate=weather,lineups"
+            try:
+                f_res = requests.get(f_url, headers=self.headers, timeout=10).json()
+                f_dates = f_res.get("dates", [])
+                if f_dates and f_dates[0].get("games"):
+                    valid_games = [g for g in f_dates[0]["games"] if g.get("gameType") == "R"]
+                    if valid_games:
+                        return self.process_raw_games(valid_games, elo_model, tactics_db, is_future_preview=True)
+            except: pass
+
+        return self.process_raw_games([], elo_model, tactics_db)
+
+# =====================================================================
+# 2. 演算法與 5 萬次蒙地卡羅核心 (其餘部分同下段銜接)
+# =====================================================================
 class AdvancedEloRating:
     def __init__(self, initial_rating=1500):
         real_elo_base = {
@@ -360,7 +355,6 @@ if __name__ == "__main__":
         fac = match["factors"]
         g_pk = match["game_pk"]
         result = analyzer.analyze_match(ta, tb, fac, num_simulations=50000)
-        # 🟢【終極防禦】結合獨一無二的 game_pk 作為字典 Key，完美兼容雙重賽
         forecast_results[f"{ta} vs {tb} ({g_pk})"] = result
 
     output = {
