@@ -58,8 +58,7 @@ class MLBDataFetcher:
                     ops = float(stat.get("ops", 0.730))
                     avg = float(stat.get("avg", 0.250))
                     slg = float(stat.get("slg", 0.410))
-                    iso = max(0.05, slg - avg)
-                    return ops, iso
+                    return ops, max(0.05, slg - avg)
         except: pass
         return 0.730, 0.160
 
@@ -106,6 +105,7 @@ class MLBDataFetcher:
                         home_name = game.get("teams", {}).get("home", {}).get("team", {}).get("name")
                         team_away = name_map.get(away_name)
                         team_home = name_map.get(home_name)
+                        game_pk = str(game.get("gamePk", random.randint(100000, 999999)))
                         
                         if team_away and team_home:
                             w_info = game.get("weather", {}).get("condition", "75 Degrees, Clear")
@@ -161,21 +161,18 @@ class MLBDataFetcher:
                             market_odds_b = round(max(1.10, min(4.00, 1.05 / (1.0 - expected_prob_a))), 2)
 
                             matches.append({
-                                "team_a": team_home, "team_b": team_away,
+                                "team_a": team_home, "team_b": team_away, "game_pk": game_pk,
                                 "weather_info": w_info,
                                 "factors": {
-                                    "weather_modifier": w_mod,
-                                    "park_factor": p_factor,
+                                    "weather_modifier": w_mod, "park_factor": p_factor,
                                     "tactics_a": tactics_db[team_home], "tactics_b": tactics_db[team_away],
                                     "market_odds_a": market_odds_a, "market_odds_b": market_odds_b,
-                                    "over_under_line": base_ou,
-                                    "is_home_a": True,
+                                    "over_under_line": base_ou, "is_home_a": True,
                                     "player_ops_a": real_ops_home, "player_ops_b": real_ops_away,
                                     "player_iso_a": real_iso_home, "player_iso_b": real_iso_away,
                                     "pitcher_era_a": real_era_home_pitcher, "pitcher_era_b": real_era_away_pitcher,
                                     "bullpen_era_a": bullpen_era_home, "bullpen_era_b": bullpen_era_away,
-                                    "is_public_a": team_home in self.public_teams,
-                                    "is_public_b": team_away in self.public_teams
+                                    "is_public_a": team_home in self.public_teams, "is_public_b": team_away in self.public_teams
                                 }
                             })
         except Exception as e: print(f"Error: {e}")
@@ -183,31 +180,24 @@ class MLBDataFetcher:
         if not matches:
             all_teams = list(name_map.values())
             random.shuffle(all_teams)
-            dummy_weathers = ["86 Degrees, Clear", "72 Degrees, Dome"]
+            dummy_weathers = ["82 Degrees, Clear", "72 Degrees, Dome"]
             for i in range(0, 14, 2):
                 ta, tb = all_teams[i], all_teams[i+1]
                 w_str = random.choice(dummy_weathers)
                 p_fac = self.park_factors.get(ta, 100)
                 matches.append({
-                    "team_a": ta, "team_b": tb,
+                    "team_a": ta, "team_b": tb, "game_pk": f"mock_{i}",
                     "weather_info": w_str,
                     "factors": {
-                        "weather_modifier": self.parse_real_weather(w_str),
-                        "park_factor": p_fac,
+                        "weather_modifier": self.parse_real_weather(w_str), "park_factor": p_fac,
                         "tactics_a": tactics_db[ta], "tactics_b": tactics_db[tb],
                         "market_odds_a": 1.75, "market_odds_b": 2.15,
-                        "over_under_line": 10.5 if ta == "Rockies" else (7.5 if p_fac < 96 else 8.5),
-                        "is_home_a": True,
-                        "player_ops_a": round(random.uniform(0.720, 0.810), 3), 
-                        "player_ops_b": round(random.uniform(0.690, 0.780), 3),
-                        "player_iso_a": round(random.uniform(0.130, 0.220), 3),
-                        "player_iso_b": round(random.uniform(0.120, 0.200), 3),
-                        "pitcher_era_a": round(random.uniform(2.60, 4.80), 2),
-                        "pitcher_era_b": round(random.uniform(2.90, 5.20), 2),
-                        "bullpen_era_a": round(random.uniform(3.20, 4.50), 2),
-                        "bullpen_era_b": round(random.uniform(3.30, 4.80), 2),
-                        "is_public_a": ta in self.public_teams,
-                        "is_public_b": tb in self.public_teams
+                        "over_under_line": 10.5 if ta == "Rockies" else (7.5 if p_fac < 96 else 8.5), "is_home_a": True,
+                        "player_ops_a": round(random.uniform(0.720, 0.810), 3), "player_ops_b": round(random.uniform(0.690, 0.780), 3),
+                        "player_iso_a": round(random.uniform(0.130, 0.220), 3), "player_iso_b": round(random.uniform(0.120, 0.200), 3),
+                        "pitcher_era_a": round(random.uniform(2.60, 4.80), 2), "pitcher_era_b": round(random.uniform(2.90, 5.20), 2),
+                        "bullpen_era_a": round(random.uniform(3.20, 4.50), 2), "bullpen_era_b": round(random.uniform(3.30, 4.80), 2),
+                        "is_public_a": ta in self.public_teams, "is_public_b": tb in self.public_teams
                     }
                 })
         return matches
@@ -262,16 +252,12 @@ class AdvancedPoissonPredictor:
             iso_impact_b = 1.0 - (0.160 - p_iso_b) * (1.0 - park_mod) * 2.0
             park_mod_a = park_mod * max(0.85, iso_impact_a)
             park_mod_b = park_mod * max(0.85, iso_impact_b)
-        else:
-            park_mod_a = park_mod
-            park_mod_b = park_mod
+        else: park_mod_a, park_mod_b = park_mod, park_mod
         
         base_a = (current_era_b / self.league_avg_era) * (p_ops_a / self.league_avg_ops) * self.league_avg_runs * park_mod_a
         base_b = (current_era_a / self.league_avg_era) * (p_ops_b / self.league_avg_ops) * self.league_avg_runs * park_mod_b
         
-        lambda_a = base_a / 9.0
-        lambda_b = base_b / 9.0
-        
+        lambda_a, lambda_b = base_a / 9.0, base_b / 9.0
         if factors.get("is_home_a", False): lambda_a *= 1.04
         else: lambda_b *= 1.04
             
@@ -302,14 +288,12 @@ class AdvancedPoissonPredictor:
             lam_a, lam_b = self.calculate_match_lambdas(team_a, team_b, elo_model, factors, inning)
             score_a += self._poisson_rvs(lam_a)
             score_b += self._poisson_rvs(lam_b)
-            
         innings = 9
         while score_a == score_b and innings < 15:
             innings += 1
             lam_a_ext, lam_b_ext = self.calculate_match_lambdas(team_a, team_b, elo_model, factors, 10)
             score_a += self._poisson_rvs(lam_a_ext * 1.20)
             score_b += self._poisson_rvs(lam_b_ext * 1.20)
-            
         if score_a == score_b:
             if random.random() > 0.5: score_a += 1
             else: score_b += 1
@@ -329,7 +313,6 @@ class MatchAnalyzer:
         if factors.get("is_public_a", False) and odds_a < odds_b:
             adjusted_market_prob_a = (1.05 / odds_a) - 0.04
         else: adjusted_market_prob_a = (1.05 / odds_a)
-            
         is_a_favorite = adjusted_market_prob_a > 0.5
         
         for _ in range(num_simulations):
@@ -351,24 +334,40 @@ class MatchAnalyzer:
         over_count = sum(1 for sa, sb in scores_history if (sa + sb) > ou_line)
         over_prob = over_count / num_simulations
 
-        # 🟢【終極修改點】不再輸出死板字串，改用「字典資料結構」完美對接前端
         return {
-            "winner": winner,
-            "win_probability": f"{max(prob_a, prob_b):.2%}",
-            "most_likely": most_likely,
-            "second_likely": second_likely,
-            "upset_prob": f"{upset_probability:.2%}",
-            "ou_line": str(ou_line),
-            "over_prob": f"{over_prob * 100:.1f}%",
-            "under_prob": f"{(1.0 - over_prob) * 100:.1f}%",
+            "winner": winner, "win_probability": f"{max(prob_a, prob_b):.2%}",
+            "most_likely": most_likely, "second_likely": second_likely, "upset_prob": f"{upset_probability:.2%}",
+            "ou_line": str(ou_line), "over_prob": f"{over_prob * 100:.1f}%", "under_prob": f"{(1.0 - over_prob) * 100:.1f}%",
             "ou_recommend": "大分" if over_prob >= 0.5 else "小分",
-            # 傳遞實時戰報因子供前端視覺化呈現
-            "report_weather": factors.get("weather_modifier", 1.0),
-            "report_park": factors.get("park_factor", 100),
-            "report_p_era_a": factors.get("pitcher_era_a", 4.0),
-            "report_p_era_b": factors.get("pitcher_era_b", 4.0),
-            "report_b_era_a": factors.get("bullpen_era_a", 4.0),
-            "report_b_era_b": factors.get("bullpen_era_b", 4.0),
-            "report_ops_a": round(factors.get("player_ops_a", 0.73), 3),
-            "report_ops_b": round(factors.get("player_ops_b", 0.73), 3),
- 
+            "report_weather": factors.get("weather_modifier", 1.0), "report_park": factors.get("park_factor", 100),
+            "report_p_era_a": factors.get("pitcher_era_a", 4.0), "report_p_era_b": factors.get("pitcher_era_b", 4.0),
+            "report_b_era_a": factors.get("bullpen_era_a", 4.0), "report_b_era_b": factors.get("bullpen_era_b", 4.0),
+            "report_ops_a": round(factors.get("player_ops_a", 0.73), 3), "report_ops_b": round(factors.get("player_ops_b", 0.73), 3),
+            "report_weather_info": factors.get("weather_info", "中立穩定")
+        }
+
+if __name__ == "__main__":
+    elo = AdvancedEloRating()
+    elo.load_historical_elo()
+    fetcher = MLBDataFetcher()
+    todays_matches = fetcher.fetch_todays_schedule_and_odds(elo)
+    poisson = AdvancedPoissonPredictor()
+    analyzer = MatchAnalyzer(elo, poisson)
+    
+    forecast_results = {}
+    for match in todays_matches:
+        ta, tb = match["team_a"], match["team_b"]
+        fac = match["factors"]
+        g_pk = match["game_pk"]
+        result = analyzer.analyze_match(ta, tb, fac, num_simulations=50000)
+        # 🟢【終極防禦】結合獨一無二的 game_pk 作為字典 Key，完美兼容雙重賽
+        forecast_results[f"{ta} vs {tb} ({g_pk})"] = result
+
+    output = {
+        "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "force_refresh_token": f"{random.randint(100000, 999999)}",
+        "predictions": forecast_results, "historical_elo": dict(elo.ratings)
+    }
+    with open("latest_forecast.json", "w", encoding="utf-8") as f:
+        json.dump(output, f, ensure_ascii=False, indent=4)
+    print("DONE")
