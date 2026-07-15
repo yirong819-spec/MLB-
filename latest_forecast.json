@@ -1,8 +1,16 @@
 {
-    "last_update": "2026-07-15 03:59:39",
-    "predictions": {},
-    "historical_elo": {
-        "Dodgers": 1615,
-        "Yankees": 1585
+    "last_update": "2026-07-15 12:00:00",
+    "predictions": {
+        "Yankees vs Dodgers": {
+            "winner": "Yankees",
+            "win_probability": "55.00%",
+            "upset_prob": "0.0%",
+            "most_likely": "4 : 3",
+            "second_likely": "3 : 2",
+            "ou_line": "8.5",
+            "ou_recommend": "大分",
+            "over_prob": "60.0%",
+            "under_prob": "40.0%"
+        }
     }
 }
