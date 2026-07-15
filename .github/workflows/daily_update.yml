@@ -1,46 +1,5 @@
-name: Daily MLB Forecast Update
-
-on:
-  schedule:
-    - cron: '0 22 * * *' # 每天定時自動執行
-  workflow_dispatch: # 支援手動點擊執行
-
-jobs:
-  run-simulation:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: 檢查程式碼
-      uses: actions/checkout@v3
-      with:
-        persist-credentials: true # ✨【關鍵優化 1】允許保留憑證以便後面進行寫入
-
-    - name: 設定 Python 環境
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-
-    - name: 安裝套件
-      run: |
-        pip install -r requirements.txt
-
     - name: 執行大數據模擬抓取
+      env:
+        MLB_API_KEY: ${{ secrets.MLB_API_KEY }}  # 這行是關鍵，必須要有
       run: |
         python fetch_and_run.py
-
-    - name: 自動提交並推送最新數據
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # ✨【關鍵優化 2】注入系統自帶的安全金鑰
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add latest_forecast.json
-        
-        # 檢查檔案是否有變動，有的話才提交
-        if ! git diff --cached --quiet; then
-          git commit -m "🔄 自動更新 MLB 當日預測數據 [$(date)]"
-          # 使用金鑰認證強行推流回倉庫
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
-        else
-          echo "💡 沒有偵測到檔案變動，跳過推流。"
-        fi
