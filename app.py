@@ -1,102 +1,52 @@
 import streamlit as st
 import json
 import os
-import time
 
 st.set_page_config(page_title="MLB 深度多因子大數據預測", layout="wide")
 
 def load_prediction_data(file_path):
     if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8") as f: return json.load(f)
+        with open(file_path, "r", encoding="utf-8") as f:
+            try:
+                return json.load(f)
+            except:
+                return None
     return None
 
 st.title("🔮 2026 MLB 終極完全體智能預測系統")
-st.subheader("融合：實時左右打歷史分流、先發/牛棚獨立防禦率、球場幾何效應、莊家大眾資金修正之 50,000 次蒙地卡羅精算")
 
-TEAM_TRANSLATION = {
-    "Yankees": "紐約洋基", "Red Sox": "波士頓紅襪", "Rays": "坦帕灣光芒", "Blue Jays": "多倫多藍鳥", "Orioles": "巴爾地摩金鶯",
-    "Guardians": "克里夫蘭守護者", "Twins": "明尼蘇達雙城", "Tigers": "底特律老虎", "White Sox": "芝加哥白襪", "Royals": "堪薩斯皇家",
-    "Astros": "休士頓太空人", "Mariners": "西雅圖水手", "Rangers": "德州遊騎兵", "Angels": "洛杉磯天使", "Athletics": "奧克蘭運動家",
-    "Dodgers": "洛杉磯道奇", "Braves": "亞特蘭大勇士", "Phillies": "費城費城人", "Mets": "紐約大都會", "Marlins": "邁阿密馬林魚", "Nationals": "華盛頓國民",
-    "Brewers": "密爾瓦基釀酒人", "Cubs": "芝加哥小熊", "Reds": "辛辛那提紅人", "Pirates": "匹茲堡海盜", "Cardinals": "聖路易紅雀",
-    "Giants": "舊金山巨人", "Padres": "聖地牙哥教士", "Diamondbacks": "亞利桑那響尾蛇", "Rockies": "科羅拉多洛磯"
-}
+data = load_prediction_data("latest_forecast.json")
 
-if st.button("🔄 點我即時同步數據"):
-    st.toast("🚀 正在重新加載最新大數據...", icon="⚡")
-    time.sleep(0.3)
-    st.rerun()
-
-json_file = "latest_forecast.json"
-data = load_prediction_data(json_file)
-
-if data is None:
-    st.warning("⏳ 正在初始化首次預測數據，請稍候...")
+if data is None or "predictions" not in data or not data["predictions"]:
+    st.warning("⏳ 正在初始化數據或數據載入中，請稍候...")
 else:
-    st.success(f"📅 本日數據更新時間：{data.get('last_update', '未知')}")
-    predictions = data.get("predictions", {})
-    
-    if not predictions:
-        st.info("📅 今日暫無排定賽事，系統維持保底展示。")
-        
+    predictions = data["predictions"]
     for match_full_key, res in predictions.items():
-        # 解析複合式 Key 中的球隊名稱，完美兼容雙重賽
-        try:
-            match_name = match_full_key.split(" (")[0]
-            teams = match_name.split(" vs ")
-            team_a_zh = TEAM_TRANSLATION.get(teams[0], teams[0])
-            team_b_zh = TEAM_TRANSLATION.get(teams[1], teams[1])
-            is_doubleheader = " ⚾[當日雙重賽]" if "mock" not in match_full_key and "(" in match_full_key else ""
-        except:
-            team_a_zh, team_b_zh, is_doubleheader = "未知球隊", "未知球隊", ""
-            
-        winner_zh = TEAM_TRANSLATION.get(res.get("winner"), res.get("winner", "未定"))
-        
+        # 安全取得數據，防止 Key 不存在或值為 None
+        winner = res.get("winner", "未定")
+        win_prob = res.get("win_probability", "50.0%")
+        upset_prob = res.get("upset_prob", "0.0%")
+        most_likely = res.get("most_likely", "0 : 0")
+        second_likely = res.get("second_likely", "0 : 0")
+        ou_line = res.get("ou_line", "8.5")
+        ou_rec = res.get("ou_recommend", "未定")
+        over_prob = res.get("over_prob", "50.0%")
+        under_prob = res.get("under_prob", "50.0%")
+
         with st.container():
-            st.markdown(f"### ⚾ 賽事對決：`{team_a_zh}` (主) VS `{team_b_zh}` (客) <span style='color:orange;'>{is_doubleheader}</span>", unsafe_allow_html=True)
-            
+            st.markdown(f"### ⚾ 賽事：{match_full_key}")
             col1, col2, col3, col4 = st.columns(4)
+            
             with col1:
-                st.metric(label="🏆 預測勝方 (勝率)", value=winner_zh, delta=res.get("win_probability", "50%"))
-                st.metric(label="🚨 莊家去泡沫爆冷率", value=res.get("upset_prob", "0.0%"))
+                st.metric(label="🏆 預測勝方", value=winner)
+                st.metric(label="🚨 爆冷門機率", value=upset_prob)
             with col2:
-                st.metric(label="🥇 第一高可能比分", value=res.get("most_likely", "0 : 0"))
-                st.metric(label="🥈 第二高可能比分", value=res.get("second_likely", "0 : 0"))
+                st.metric(label="🥇 第一高可能比分", value=most_likely)
+                st.metric(label="🥈 第二高可能比分", value=second_likely)
             with col3:
-                st.metric(label="📊 大小分盤口線", value=f"{res.get('ou_line', '8.5')} 分")
-                st.metric(label="🎯 預測傾向結果", value=res.get("ou_recommend", "未定"))
-            
-            # 工業級沙盒化數學轉換，完全杜絕因欄位遺失造成的格式化錯誤
-            try:
-                over_str = res.get("over_prob", "50.0%").replace("%", "")
-                under_str = res.get("under_prob", "50.0%").replace("%", "")
-                display_over = f"{float(over_str):.1f}%"
-                display_under = f"{float(under_str):.1f}%"
-            except:
-                display_over, display_under = "50.0%", "50.0%"
-                
+                st.metric(label="📊 大小分盤口", value=f"{ou_line} 分")
+                st.metric(label="🎯 預測傾向", value=ou_rec)
             with col4:
-                st.metric(label="📈 大分出現總機率", value=display_over)
-                st.metric(label="📉 小分出現總機率", value=display_under)
-            
-            # 5大核心因子戰報面板
-            with st.expander("📊 查看此場比賽「5大核心因子」即時大數據戰報"):
-                c1, c2, c3 = st.columns(3)
-                
-                try: raw_weather_mod = float(res.get('report_weather', 1.0))
-                except: raw_weather_mod = 1.0
-                    
-                with c1:
-                    st.write(f"🌤️ **天候環境**：{res.get('report_weather_info', '中立穩定')}")
-                    st.write(f"📉 **天候疲勞倍率**：{raw_weather_mod:.2f}x")
-                with c2:
-                    st.write(f"🏟️ **球場幾何效應指數**：{res.get('report_park', 100)}")
-                    st.write(f"🎨 **主場優勢加成**：已自動注入 +4.0%")
-                with c3:
-                    st.write(f"👤 **當日抗投左右對戰加權打擊率 (OPS)**")
-                    st.write(f" - {team_a_zh} 打線：`{res.get('report_ops_a', 0.730)}`")
-                    st.write(f" - {team_b_zh} 打線：`{res.get('report_ops_b', 0.730)}`")
-                    
-                st.caption(f"💡 *防守分流精算資訊：{team_a_zh} 先發 ERA `{res.get('report_p_era_a', 4.0)}` / 牛棚 `{res.get('report_b_era_a', 4.0)}` ｜ {team_b_zh} 先發 ERA `{res.get('report_p_era_b', 4.0)}` / 牛棚 `{res.get('report_b_era_b', 4.0)}`*")
-            
+                st.metric(label="📈 大分出現機率", value=over_prob)
+                st.metric(label="📉 小分出現機率", value=under_prob)
             st.write("---")
