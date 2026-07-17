@@ -1,12 +1,12 @@
-import math, random, json, requests
+import math, json, requests
 import numpy as np
 from datetime import datetime
 from collections import defaultdict
-from bs4 import BeautifulSoup
 
 class MLB_Advanced_System:
     def __init__(self):
-        self.team_db = {
+        # 確保 team_stats 被正確定義在 __init__ 內
+        self.team_stats = {
             "道奇": {"ERA": 3.1, "AVG": 0.265, "Tactical": 0.9, "Home_Adv": 1.05},
             "洋基": {"ERA": 3.3, "AVG": 0.260, "Tactical": 0.85, "Home_Adv": 1.02},
             "勇士": {"ERA": 3.2, "AVG": 0.258, "Tactical": 0.85, "Home_Adv": 1.03},
@@ -63,4 +63,5 @@ class MLB_Advanced_System:
             json.dump({"last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "predictions": results}, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-    MLB_Advanced_System().run()
+    system = MLB_Advanced_System()
+    system.run()
