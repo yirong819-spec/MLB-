@@ -18,11 +18,21 @@ class MLB_System:
         return k - 1
 
     def run(self):
+        # 顯示日期以便檢查，並確保格式符合要求
         date_str = datetime.now().strftime('%Y-%m-%d')
         url = f"https://v1.baseball.api-sports.io/games?league=1&season=2026&date={date_str}"
+        
         try:
-            res = requests.get(url, headers=self.headers, timeout=20).json()
+            response = requests.get(url, headers=self.headers, timeout=20)
+            res = response.json()
+            
+            # 強制印出原始回傳，幫助我們診斷
+            print(f"DEBUG: URL={url}")
+            print(f"DEBUG: Response={res}")
+            
             games = res.get("response", [])
+            # ... (後續邏輯)
+
         except Exception as e:
             print(f"Error: {e}"); return
 
