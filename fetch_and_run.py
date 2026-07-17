@@ -1,25 +1,28 @@
-import math, random, json
+import math, random, json, requests
 from datetime import datetime
 from collections import defaultdict
 
-class MLB_System:
+class MLB_Advanced_System:
     def __init__(self):
-        # 隊伍名稱已全數中文化
-        self.elo = defaultdict(lambda: 1500, {
-            "道奇": 1615, "洋基": 1585, "勇士": 1560, "費城人": 1575, "太空人": 1550, 
-            "金鶯": 1565, "教士": 1545, "響尾蛇": 1525, "大都會": 1520, "釀酒人": 1540, 
-            "守護者": 1525, "皇家": 1515, "雙城": 1510, "紅襪": 1505, "水手": 1515, 
-            "老虎": 1500, "遊騎兵": 1495, "小熊": 1490, "藍鳥": 1485, "巨人": 1480, 
-            "紅雀": 1485, "光芒": 1490, "紅人": 1475, "海盜": 1460, "國民": 1450, 
-            "天使": 1440, "馬林魚": 1430, "運動家": 1420, "洛磯": 1410, "白襪": 1350
-        })
-        self.park_factors = {"洛磯": 1.12, "紅襪": 1.09, "紅人": 1.05, "道奇": 1.03, "洋基": 1.02}
+        # 1. 全聯盟 30 隊資料庫 (整合左右投對抗 ERA)
+        self.team_db = {
+            "道奇": {"L_ERA": 3.1, "R_ERA": 3.3, "AVG": 0.265, "戰術": 0.9},
+            "洋基": {"L_ERA": 3.3, "R_ERA": 3.5, "AVG": 0.260, "戰術": 0.85},
+            "勇士": {"L_ERA": 3.2, "R_ERA": 3.4, "AVG": 0.258, "戰術": 0.8},
+            # ... (需補齊全聯盟 30 隊數據)
+            "白襪": {"L_ERA": 4.8, "R_ERA": 5.0, "AVG": 0.210, "戰術": 0.4}
+        }
+        self.elo = defaultdict(lambda: 1500, {k: 1500 for k in self.team_db.keys()})
 
-    def get_matchups(self):
-        # 手動設定今日賽程（中文）
+    def get_live_data(self):
+        """
+        模擬獲取機制：
+        這裡會串接賽事、先發投手與賠率數據。
+        系統會回傳包含 {away, home, away_pitcher_hand, home_pitcher_hand, market_odds} 的清單。
+        """
         return [
-            {"away": "洋基", "home": "道奇", "away_split": 1.05, "home_split": 0.95},
-            {"away": "勇士", "home": "費城人", "away_split": 1.0, "home_split": 1.0}
+            {"away": "洋基", "home": "道奇", "a_p_hand": "R", "h_p_hand": "L", "market_prob": 0.52},
+            {"away": "勇士", "home": "費城人", "a_p_hand": "L", "h_p_hand": "R", "market_prob": 0.48}
         ]
 
     def poisson_sim(self, lam):
@@ -31,32 +34,34 @@ class MLB_System:
         return k - 1
 
     def run(self):
-        matchups = self.get_matchups()
+        matchups = self.get_live_data()
         results = {}
         for m in matchups:
-            a_factor = self.park_factors.get(m['away'], 1.0) * m['away_split']
-            h_factor = self.park_factors.get(m['home'], 1.0) * m['home_split']
+            a_data = self.team_db[m['away']]
+            h_data = self.team_db[m['home']]
+            
+            # 先發投手對抗調整
+            a_era = a_data["L_ERA"] if m['a_p_hand'] == "L" else a_data["R_ERA"]
+            h_era = h_data["L_ERA"] if m['h_p_hand'] == "L" else h_data["R_ERA"]
             
             wins_a = 0
-            for _ in range(50000):
-                lam_a = (self.elo[m['away']] / 1500) * 2.2 * a_factor
-                lam_b = (self.elo[m['home']] / 1500) * 2.2 * h_factor
-                if self.poisson_sim(lam_a) > self.poisson_sim(lam_b):
+            # 100,000 次蒙地卡羅模擬
+            for _ in range(100000):
+                lam_a = (self.elo[m['away']]/1500) * (a_data["AVG"]/h_era*10) * a_data["戰術"]
+                lam_b = (self.elo[m['home']]/1500) * (h_data["AVG"]/a_era*10) * h_data["戰術"]
+                
+                # 結合市場賠率校準 (Market Odds Adjustment)
+                if self.poisson_sim(lam_a) * m['market_prob'] > self.poisson_sim(lam_b) * (1-m['market_prob']):
                     wins_a += 1
             
-            prob = wins_a / 50000
-            # 輸出格式同步中文化
+            prob = wins_a / 100000
             results[f"{m['away']} 對 {m['home']}"] = {
-                "winner": m['away'] if prob > 0.5 else m['home'],
-                "win_probability": f"{max(prob, 1-prob):.2%}",
-                "upset_prob": f"{min(prob, 1-prob):.2%}",
-                "most_likely": f"{random.randint(2,6)} : {random.randint(1,4)}",
-                "ou_line": "8.5", 
-                "ou_recommend": "大分" if prob > 0.5 else "小分"
+                "勝率": f"{prob:.2%}",
+                "戰術建議": "強攻" if a_data["戰術"] > 0.7 else "保守"
             }
         
         with open("latest_forecast.json", "w", encoding="utf-8") as f:
             json.dump({"last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "predictions": results}, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-    MLB_System().run()
+    MLB_Advanced_System().run()
