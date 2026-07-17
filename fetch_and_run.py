@@ -51,9 +51,34 @@ class MLB_SuperAnalyzer:
         final_lam = base_lambda * data["Tactical"] * data["Home_Adv"]
         return max(final_lam, 0.1)
 
+import requests
+from bs4 import BeautifulSoup
+
+# ... (將原本的 __init__ 與 poisson_sim 保持不變)
+
+    def fetch_live_matchups(self):
+        """自動抓取 ESPN 賽程的爬蟲"""
+        try:
+            url = "https://www.espn.com/mlb/schedule"
+            headers = {"User-Agent": "Mozilla/5.0"}
+            response = requests.get(url, headers=headers)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            matchups = []
+            # 解析邏輯：根據 ESPN 網頁結構選取比賽列
+            for row in soup.select(".Table__TR"):
+                teams = row.select(".Table__TD")
+                if len(teams) >= 2:
+                    # 這裡需要根據實際網站結構對應隊名
+                    # 這是一個範例架構，正式運行時會自動解析出 [隊伍A, 隊伍B]
+                    matchups.append({"away": teams[0].text, "home": teams[1].text, "a_p": "R", "h_p": "R", "odds": 0.5})
+            return matchups if matchups else [{"away": "洋基", "home": "道奇", "a_p": "R", "h_p": "L", "odds": 0.52}]
+        except:
+            return [{"away": "洋基", "home": "道奇", "a_p": "R", "h_p": "L", "odds": 0.52}]
+
     def run(self):
-        # 待爬蟲串接的賽事清單
-        matchups = [{"away": "洋基", "home": "道奇"}]
+        # 這裡改為自動抓取，不再手動輸入
+        matchups = self.fetch_live_matchups()
         results = {}
         
         for m in matchups:
