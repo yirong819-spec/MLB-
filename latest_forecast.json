@@ -1,21 +1,9 @@
 {
-    "last_update": "2026-07-17 00:59:49",
+    "last_update": "2026-07-17 01:12:41",
     "predictions": {
         "洋基 對 道奇": {
-            "winner": "道奇",
-            "win_probability": "56.30%",
-            "upset_prob": "43.70%",
-            "most_likely": "2 : 2",
-            "ou_line": "8.5",
-            "ou_recommend": "小分"
-        },
-        "勇士 對 費城人": {
-            "winner": "費城人",
-            "win_probability": "60.16%",
-            "upset_prob": "39.84%",
-            "most_likely": "3 : 4",
-            "ou_line": "8.5",
-            "ou_recommend": "小分"
+            "勝率": "45.56%",
+            "建議": "強攻"
         }
     }
 }
