@@ -17,10 +17,10 @@ jobs:
         with:
           python-version: '3.10'
 
-      # --- 關鍵修正：確保安裝依賴 ---
+      # --- 關鍵修正：將 numpy 加入安裝列表 ---
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4
+          pip install requests beautifulsoup4 numpy
 
       - name: Run Analysis
         run: python fetch_and_run.py
