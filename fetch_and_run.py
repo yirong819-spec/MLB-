@@ -1,67 +1,70 @@
-import math, json, requests
+import json, requests, math
 import numpy as np
 from datetime import datetime
-from collections import defaultdict
+from bs4 import BeautifulSoup
 
-class MLB_Advanced_System:
+class MLB_SuperAnalyzer:
     def __init__(self):
-        # 確保 team_stats 被正確定義在 __init__ 內
+        # 30 支隊伍完整數據庫 (包含戰術風格)
         self.team_stats = {
-            "道奇": {"ERA": 3.1, "AVG": 0.265, "Tactical": 0.9, "Home_Adv": 1.05},
-            "洋基": {"ERA": 3.3, "AVG": 0.260, "Tactical": 0.85, "Home_Adv": 1.02},
-            "勇士": {"ERA": 3.2, "AVG": 0.258, "Tactical": 0.85, "Home_Adv": 1.03},
-            "費城人": {"ERA": 3.4, "AVG": 0.255, "Tactical": 0.8, "Home_Adv": 1.02},
-            "太空人": {"ERA": 3.5, "AVG": 0.250, "Tactical": 0.75, "Home_Adv": 1.01},
-            "金鶯": {"ERA": 3.4, "AVG": 0.250, "Tactical": 0.8, "Home_Adv": 1.02},
-            "教士": {"ERA": 3.6, "AVG": 0.248, "Tactical": 0.75, "Home_Adv": 1.01},
-            "響尾蛇": {"ERA": 3.7, "AVG": 0.245, "Tactical": 0.75, "Home_Adv": 1.02},
-            "大都會": {"ERA": 3.8, "AVG": 0.240, "Tactical": 0.7, "Home_Adv": 1.01},
-            "釀酒人": {"ERA": 3.5, "AVG": 0.242, "Tactical": 0.75, "Home_Adv": 1.02},
-            "守護者": {"ERA": 3.6, "AVG": 0.240, "Tactical": 0.75, "Home_Adv": 1.01},
-            "皇家": {"ERA": 3.7, "AVG": 0.238, "Tactical": 0.7, "Home_Adv": 1.01},
-            "雙城": {"ERA": 3.8, "AVG": 0.235, "Tactical": 0.7, "Home_Adv": 1.01},
-            "紅襪": {"ERA": 3.6, "AVG": 0.242, "Tactical": 0.75, "Home_Adv": 1.02},
-            "水手": {"ERA": 3.4, "AVG": 0.230, "Tactical": 0.7, "Home_Adv": 1.03},
-            "老虎": {"ERA": 3.9, "AVG": 0.232, "Tactical": 0.65, "Home_Adv": 1.01},
-            "遊騎兵": {"ERA": 4.0, "AVG": 0.230, "Tactical": 0.65, "Home_Adv": 1.01},
-            "小熊": {"ERA": 3.9, "AVG": 0.235, "Tactical": 0.65, "Home_Adv": 1.01},
-            "藍鳥": {"ERA": 4.1, "AVG": 0.228, "Tactical": 0.6, "Home_Adv": 1.01},
-            "巨人": {"ERA": 4.0, "AVG": 0.230, "Tactical": 0.65, "Home_Adv": 1.02},
-            "紅雀": {"ERA": 3.9, "AVG": 0.232, "Tactical": 0.65, "Home_Adv": 1.01},
-            "光芒": {"ERA": 3.8, "AVG": 0.230, "Tactical": 0.7, "Home_Adv": 1.01},
-            "紅人": {"ERA": 4.2, "AVG": 0.225, "Tactical": 0.6, "Home_Adv": 1.01},
-            "海盜": {"ERA": 4.1, "AVG": 0.228, "Tactical": 0.6, "Home_Adv": 1.01},
-            "國民": {"ERA": 4.3, "AVG": 0.220, "Tactical": 0.55, "Home_Adv": 1.0},
-            "天使": {"ERA": 4.4, "AVG": 0.218, "Tactical": 0.55, "Home_Adv": 1.0},
-            "馬林魚": {"ERA": 4.2, "AVG": 0.220, "Tactical": 0.55, "Home_Adv": 1.0},
-            "運動家": {"ERA": 4.5, "AVG": 0.215, "Tactical": 0.5, "Home_Adv": 1.0},
-            "洛磯": {"ERA": 4.7, "AVG": 0.225, "Tactical": 0.5, "Home_Adv": 1.05},
-            "白襪": {"ERA": 4.8, "AVG": 0.210, "Tactical": 0.45, "Home_Adv": 1.0}
+            "道奇": {"ERA": 3.1, "AVG": 0.265, "Style": "Power"},
+            "洋基": {"ERA": 3.3, "AVG": 0.260, "Style": "Power"},
+            "勇士": {"ERA": 3.2, "AVG": 0.258, "Style": "SmallBall"},
+            "費城人": {"ERA": 3.4, "AVG": 0.255, "Style": "Defensive"},
+            "太空人": {"ERA": 3.5, "AVG": 0.250, "Style": "Power"},
+            "金鶯": {"ERA": 3.4, "AVG": 0.250, "Style": "SmallBall"},
+            "教士": {"ERA": 3.6, "AVG": 0.248, "Style": "SmallBall"},
+            "響尾蛇": {"ERA": 3.7, "AVG": 0.245, "Style": "SmallBall"},
+            "大都會": {"ERA": 3.8, "AVG": 0.240, "Style": "Power"},
+            "釀酒人": {"ERA": 3.5, "AVG": 0.242, "Style": "Defensive"},
+            "守護者": {"ERA": 3.6, "AVG": 0.240, "Style": "Defensive"},
+            "皇家": {"ERA": 3.7, "AVG": 0.238, "Style": "Power"},
+            "雙城": {"ERA": 3.8, "AVG": 0.235, "Style": "Power"},
+            "紅襪": {"ERA": 3.6, "AVG": 0.242, "Style": "Power"},
+            "水手": {"ERA": 3.4, "AVG": 0.230, "Style": "Defensive"},
+            "老虎": {"ERA": 3.9, "AVG": 0.232, "Style": "SmallBall"},
+            "遊騎兵": {"ERA": 4.0, "AVG": 0.230, "Style": "Power"},
+            "小熊": {"ERA": 3.9, "AVG": 0.235, "Style": "SmallBall"},
+            "藍鳥": {"ERA": 4.1, "AVG": 0.228, "Style": "Power"},
+            "巨人": {"ERA": 4.0, "AVG": 0.230, "Style": "Defensive"},
+            "紅雀": {"ERA": 3.9, "AVG": 0.232, "Style": "SmallBall"},
+            "光芒": {"ERA": 3.8, "AVG": 0.230, "Style": "Defensive"},
+            "紅人": {"ERA": 4.2, "AVG": 0.225, "Style": "Power"},
+            "海盜": {"ERA": 4.1, "AVG": 0.228, "Style": "SmallBall"},
+            "國民": {"ERA": 4.3, "AVG": 0.220, "Style": "SmallBall"},
+            "天使": {"ERA": 4.4, "AVG": 0.218, "Style": "Power"},
+            "馬林魚": {"ERA": 4.2, "AVG": 0.220, "Style": "Defensive"},
+            "運動家": {"ERA": 4.5, "AVG": 0.215, "Style": "Power"},
+            "洛磯": {"ERA": 4.7, "AVG": 0.225, "Style": "Power"},
+            "白襪": {"ERA": 4.8, "AVG": 0.210, "Style": "SmallBall"}
         }
         self.simulations = 100000
 
-    def calculate_expectation(self, team_name, opponent_name):
-        data = self.team_stats.get(team_name, {"ERA": 4.0, "AVG": 0.230, "Tactical": 0.5, "Home_Adv": 1.0})
-        opp = self.team_stats.get(opponent_name, {"ERA": 4.0, "AVG": 0.230, "Tactical": 0.5, "Home_Adv": 1.0})
-        base_lambda = (data["AVG"] / opp["ERA"]) * 10
-        return max(base_lambda * data["Tactical"] * data["Home_Adv"], 0.1)
+    def get_tactical_clash(self, style1, style2):
+        matrix = {("Power", "Defensive"): 1.15, ("SmallBall", "Power"): 1.1, ("Defensive", "SmallBall"): 1.1}
+        return matrix.get((style1, style2), 1.0)
 
     def run(self):
         matchups = [{"away": "洋基", "home": "道奇"}, {"away": "勇士", "home": "費城人"}]
         results = {}
         for m in matchups:
-            lam_a = self.calculate_expectation(m['away'], m['home'])
-            lam_b = self.calculate_expectation(m['home'], m['away'])
-            scores_a = np.random.poisson(lam_a, self.simulations)
-            scores_b = np.random.poisson(lam_b, self.simulations)
-            win_prob = np.mean(scores_a > scores_b)
+            t1, t2 = self.team_stats.get(m['away']), self.team_stats.get(m['home'])
+            lam_a = (t1["AVG"] / t2["ERA"]) * 10 * self.get_tactical_clash(t1["Style"], t2["Style"])
+            lam_b = (t2["AVG"] / t1["ERA"]) * 10 * self.get_tactical_clash(t2["Style"], t1["Style"])
+            s_a = np.random.poisson(lam_a, self.simulations)
+            s_b = np.random.poisson(lam_b, self.simulations)
+            vals, counts = np.unique(np.column_stack((s_a, s_b)), axis=0, return_counts=True)
+            top = vals[np.argsort(counts)[-2:]][::-1]
+            win_prob = np.mean(s_a > s_b)
             results[f"{m['away']} 對 {m['home']}"] = {
                 "勝率": f"{max(win_prob, 1-win_prob):.2%}",
-                "建議": "強攻" if self.team_stats[m['away']]["Tactical"] > 0.7 else "保守"
+                "最可能比分": f"{top[0][0]}:{top[0][1]}",
+                "次要比分": f"{top[1][0]}:{top[1][1]}",
+                "錯誤機率": f"{1 - max(win_prob, 1-win_prob):.2%}",
+                "戰術分析": f"{t1['Style']} VS {t2['Style']} - 戰術權重校準完成"
             }
         with open("latest_forecast.json", "w", encoding="utf-8") as f:
             json.dump({"last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "predictions": results}, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-    system = MLB_Advanced_System()
-    system.run()
+    MLB_SuperAnalyzer().run()
