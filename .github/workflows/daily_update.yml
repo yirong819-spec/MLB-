@@ -1,4 +1,5 @@
 name: Daily MLB Forecast Update
+
 on:
   workflow_dispatch:
   schedule:
@@ -8,15 +9,26 @@ jobs:
   run-simulation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with: {python-version: '3.10'}
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # --- 關鍵修正：確保安裝依賴 ---
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4
+
       - name: Run Analysis
         run: python fetch_and_run.py
+
       - name: Commit and push
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
           git add latest_forecast.json
-          git commit -m "Auto Update Forecast" || echo "No changes"
+          git commit -m "Auto Update Forecast" || echo "No changes to commit"
           git push
