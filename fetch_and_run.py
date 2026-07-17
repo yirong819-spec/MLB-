@@ -1,8 +1,4 @@
-import math
-import random
-import json
-import os
-import requests
+import math, random, json, os, requests
 from datetime import datetime
 from collections import defaultdict
 
@@ -22,14 +18,16 @@ class MLB_System:
         return k - 1
 
     def run(self):
-        url = f"https://v1.baseball.api-sports.io/games?league=1&season=2026&date={datetime.now().strftime('%Y-%m-%d')}"
+        date_str = datetime.now().strftime('%Y-%m-%d')
+        url = f"https://v1.baseball.api-sports.io/games?league=1&season=2026&date={date_str}"
         try:
-            response = requests.get(url, headers=self.headers, timeout=20).json()
-            games = response.get("response", [])
-            print(f"DEBUG: Found {len(games)} games.")
+            res = requests.get(url, headers=self.headers, timeout=20).json()
+            games = res.get("response", [])
         except Exception as e:
-            print(f"DEBUG: Error fetching data: {e}")
-            return
+            print(f"Error: {e}"); return
+
+        if not games: 
+            print("No games found, keeping existing file."); return
 
         results = {}
         for game in games:
@@ -51,13 +49,11 @@ class MLB_System:
                 "upset_prob": f"{min(prob, 1-prob):.2%}",
                 "most_likely": f"{random.randint(2,6)} : {random.randint(1,4)}",
                 "second_likely": f"{random.randint(1,5)} : {random.randint(2,5)}",
-                "ou_line": "8.5", "ou_recommend": "大分" if prob > 0.5 else "小分",
-                "over_prob": "55.0%", "under_prob": "45.0%"
+                "ou_line": "8.5", "ou_recommend": "大分" if prob > 0.5 else "小分"
             }
 
-        if results:
-            with open("latest_forecast.json", "w", encoding="utf-8") as f:
-                json.dump({"last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "predictions": results, "historical_elo": dict(self.elo)}, f, ensure_ascii=False, indent=4)
+        with open("latest_forecast.json", "w", encoding="utf-8") as f:
+            json.dump({"last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "predictions": results}, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
     MLB_System().run()
