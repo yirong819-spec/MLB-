@@ -1,36 +1,21 @@
 {
-    "last_update": "2026-07-17 00:06:59",
-    "predictions": {},
-    "historical_elo": {
-        "Dodgers": 1615,
-        "Yankees": 1585,
-        "Braves": 1560,
-        "Phillies": 1575,
-        "Astros": 1550,
-        "Orioles": 1565,
-        "Padres": 1545,
-        "Diamondbacks": 1525,
-        "Mets": 1520,
-        "Brewers": 1540,
-        "Guardians": 1525,
-        "Royals": 1515,
-        "Twins": 1510,
-        "Red Sox": 1505,
-        "Mariners": 1515,
-        "Tigers": 1500,
-        "Rangers": 1495,
-        "Cubs": 1490,
-        "Blue Jays": 1485,
-        "Giants": 1480,
-        "Cardinals": 1485,
-        "Rays": 1490,
-        "Reds": 1475,
-        "Pirates": 1460,
-        "Nationals": 1450,
-        "Angels": 1440,
-        "Marlins": 1430,
-        "Athletics": 1420,
-        "Rockies": 1410,
-        "White Sox": 1350
+    "last_update": "2026-07-17 00:57:58",
+    "predictions": {
+        "Yankees vs Dodgers": {
+            "winner": "Dodgers",
+            "win_probability": "56.24%",
+            "upset_prob": "43.76%",
+            "most_likely": "3 : 2",
+            "ou_line": "8.5",
+            "ou_recommend": "小分"
+        },
+        "Braves vs Phillies": {
+            "winner": "Phillies",
+            "win_probability": "59.88%",
+            "upset_prob": "40.12%",
+            "most_likely": "2 : 4",
+            "ou_line": "8.5",
+            "ou_recommend": "小分"
+        }
     }
 }
