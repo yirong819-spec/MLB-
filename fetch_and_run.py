@@ -1,12 +1,12 @@
-import math, random, json
+import math, random, json, requests
 import numpy as np
 from datetime import datetime
 from collections import defaultdict
+from bs4 import BeautifulSoup
 
-class MLB_SuperAnalyzer:
+class MLB_Advanced_System:
     def __init__(self):
-        # 完整 30 隊數據庫 (已含全聯盟)
-        self.team_stats = {
+        self.team_db = {
             "道奇": {"ERA": 3.1, "AVG": 0.265, "Tactical": 0.9, "Home_Adv": 1.05},
             "洋基": {"ERA": 3.3, "AVG": 0.260, "Tactical": 0.85, "Home_Adv": 1.02},
             "勇士": {"ERA": 3.2, "AVG": 0.258, "Tactical": 0.85, "Home_Adv": 1.03},
@@ -40,66 +40,27 @@ class MLB_SuperAnalyzer:
         }
         self.simulations = 100000
 
-
     def calculate_expectation(self, team_name, opponent_name):
-        # 整合 13 項因子的加權期望值計算
         data = self.team_stats.get(team_name, {"ERA": 4.0, "AVG": 0.230, "Tactical": 0.5, "Home_Adv": 1.0})
         opp = self.team_stats.get(opponent_name, {"ERA": 4.0, "AVG": 0.230, "Tactical": 0.5, "Home_Adv": 1.0})
-        
-        # 模擬 13 項因子的綜合期望值 (Lambda)
         base_lambda = (data["AVG"] / opp["ERA"]) * 10
-        final_lam = base_lambda * data["Tactical"] * data["Home_Adv"]
-        return max(final_lam, 0.1)
-
-import requests
-from bs4 import BeautifulSoup
-
-# ... (將原本的 __init__ 與 poisson_sim 保持不變)
-
-    def fetch_live_matchups(self):
-        """自動抓取 ESPN 賽程的爬蟲"""
-        try:
-            url = "https://www.espn.com/mlb/schedule"
-            headers = {"User-Agent": "Mozilla/5.0"}
-            response = requests.get(url, headers=headers)
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            matchups = []
-            # 解析邏輯：根據 ESPN 網頁結構選取比賽列
-            for row in soup.select(".Table__TR"):
-                teams = row.select(".Table__TD")
-                if len(teams) >= 2:
-                    # 這裡需要根據實際網站結構對應隊名
-                    # 這是一個範例架構，正式運行時會自動解析出 [隊伍A, 隊伍B]
-                    matchups.append({"away": teams[0].text, "home": teams[1].text, "a_p": "R", "h_p": "R", "odds": 0.5})
-            return matchups if matchups else [{"away": "洋基", "home": "道奇", "a_p": "R", "h_p": "L", "odds": 0.52}]
-        except:
-            return [{"away": "洋基", "home": "道奇", "a_p": "R", "h_p": "L", "odds": 0.52}]
+        return max(base_lambda * data["Tactical"] * data["Home_Adv"], 0.1)
 
     def run(self):
-        # 這裡改為自動抓取，不再手動輸入
-        matchups = self.fetch_live_matchups()
+        matchups = [{"away": "洋基", "home": "道奇"}, {"away": "勇士", "home": "費城人"}]
         results = {}
-        
         for m in matchups:
             lam_a = self.calculate_expectation(m['away'], m['home'])
             lam_b = self.calculate_expectation(m['home'], m['away'])
-            
-            # 10 萬次蒙地卡羅模擬
             scores_a = np.random.poisson(lam_a, self.simulations)
             scores_b = np.random.poisson(lam_b, self.simulations)
-            
             win_prob = np.mean(scores_a > scores_b)
-            
             results[f"{m['away']} 對 {m['home']}"] = {
-                "最可能比分": f"{np.bincount(scores_a).argmax()}:{np.bincount(scores_b).argmax()}",
-                "總分": f"{np.mean(scores_a + scores_b):.1f}",
                 "勝率": f"{max(win_prob, 1-win_prob):.2%}",
-                "大小分建議": "大分" if np.mean(scores_a + scores_b) > 8.5 else "小分"
+                "建議": "強攻" if self.team_stats[m['away']]["Tactical"] > 0.7 else "保守"
             }
-        
         with open("latest_forecast.json", "w", encoding="utf-8") as f:
-            json.dump({"last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "data": results}, f, ensure_ascii=False, indent=4)
+            json.dump({"last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "predictions": results}, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-    MLB_SuperAnalyzer().run()
+    MLB_Advanced_System().run()
